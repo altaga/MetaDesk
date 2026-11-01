@@ -185,22 +185,22 @@ export function captionFromActions(actions: GuideAction[], spanish: boolean): st
       open_chat: "¡Claro! Aquí está el Chat.",
       new_chat: "¡Listo! Chat nuevo para ti.",
       open_machine: "¡Claro! Aquí está Machine.",
-      open_health: "¡Listo! Aquí está Health.",
+      open_health: "¡Listo! Aquí está Board, con la salud de la Jetson.",
       open_terminal: "¡Listo! Aquí está la Terminal.",
       open_files: "¡Claro! Aquí están los Files.",
-      open_browser: "¡Listo! Aquí está Services.",
-      open_services: "¡Listo! Aquí está Services.",
+      open_browser: "¡Listo! Aquí está Preview.",
+      open_services: "¡Listo! Aquí está Preview.",
       open_panel: "¡Hecho! Abrí el panel.",
-      open_board: "¡Claro! Aquí está el panel Board.",
-      open_plan: "¡Listo! Aquí está tu Plan.",
-      open_nav: "¡Claro! Abrí el menú.",
+      open_board: "¡Claro! Aquí está Library.",
+      open_plan: "¡Listo! Aquí está Board.",
+      open_nav: "¡Claro! Aquí está Fleet.",
       highlight: "¡Aquí! Te lo señalo.",
     };
     if (primary.type === "highlight" && primary.target?.includes("terminal")) {
       return "¡Listo! Aquí está la Terminal.";
     }
     if (primary.type === "highlight" && primary.target?.includes("services")) {
-      return "¡Listo! Aquí está Services.";
+      return "¡Listo! Aquí está Preview.";
     }
     return es[primary.type] || "¡Listo! Mira lo que abrí.";
   }
@@ -208,10 +208,10 @@ export function captionFromActions(actions: GuideAction[], spanish: boolean): st
     return `Done! Opened ${switched.board}'s Terminal.`;
   }
   if (switched?.board && nav.some((a) => a.type === "open_browser" || a.type === "open_services")) {
-    return `Done! Opened ${switched.board}'s Services.`;
+    return `Done! Opened ${switched.board}'s Preview.`;
   }
   if (switched?.board && nav.some((a) => a.type === "open_health")) {
-    return `Done! Opened ${switched.board}'s Health.`;
+    return `Done! Opened ${switched.board}'s health on Board.`;
   }
   if (switched?.board && nav.some((a) => a.type === "open_files")) {
     return `Done! Opened ${switched.board}'s Files.`;
@@ -221,15 +221,15 @@ export function captionFromActions(actions: GuideAction[], spanish: boolean): st
     open_chat: "Sure! Here's Chat.",
     new_chat: "Done! Fresh chat for you.",
     open_machine: "Sure! Here's Machine.",
-    open_health: "Done! Here's Health.",
+    open_health: "Done! Here's Board, with the Jetson's health.",
     open_terminal: "Done! Here's the Terminal.",
     open_files: "Sure! Here's Files.",
-    open_browser: "Done! Here's Services.",
-    open_services: "Done! Here's Services.",
+    open_browser: "Done! Here's Preview.",
+    open_services: "Done! Here's Preview.",
     open_panel: "Got it — opened the panel.",
-    open_board: "Sure! Here's the Board panel.",
-    open_plan: "Done! Here's your Plan.",
-    open_nav: "Sure! Opened the sidebar.",
+    open_board: "Sure! Here's the Library.",
+    open_plan: "Done! Here's Board.",
+    open_nav: "Sure! Here's Fleet.",
     highlight: "Here — I'm pointing at it.",
   };
   if (primary.type === "highlight" && primary.target?.includes("terminal")) {
@@ -291,7 +291,8 @@ function mentionedFleetBoard(
 
 /** A question about what something is or does, not a request to open it. */
 function explainsSomething(userText: string): boolean {
-  return /\b(what (does|is|are)|how (does|do)|why|explain|qu[eé] (hace|es|son)|para qu[eé]|c[oó]mo funciona|expl[ií]ca)\b/i.test(
+  // Every alternative ends on an ASCII letter: \b never matches after "é" in a JS regex.
+  return /\b(what (does|is|are)|how (does|do)|why|explain|qu[eé] (hace|es|son)|para qu[eé] (sirven?|es|son)|c[oó]mo funciona|expl[ií]ca)\b/i.test(
     userText
   );
 }
@@ -359,15 +360,12 @@ export function polishGuideTurn(
   }
 
   const asksCredits =
-    /\b(cr[eé]dito|credit|balance|cu[aá]nto.*(queda|left|tengo)|how much.*(left|credit)|subscription|plan)\b/i.test(
+    /\b(cr[eé]ditos?|credits?|balance|cu[aá]nto.*(queda|left|tengo)|how (much|many).*(left|credits?)|subscription|plan)\b/i.test(
       userText
     ) && !/\b(pair|emparej)\b/i.test(userText);
+  // The desk has no Plan screen, so the credit answer is spoken only.
   if (asksCredits && bal) {
-    nextActions = [
-      { type: "react", emotion: "happy" },
-      { type: "open_plan" },
-      { type: "highlight", target: "panel.plan" },
-    ];
+    nextActions = [{ type: "react", emotion: "happy" }];
     nextText = spanish
       ? `Te quedan $${bal.cloud_remaining_usd.toFixed(2)} de cloud y ${bal.tavily_credits_remaining} créditos de búsqueda.`
       : `You have $${bal.cloud_remaining_usd.toFixed(2)} cloud credit and ${bal.tavily_credits_remaining} search credits left.`;
@@ -432,7 +430,8 @@ export function polishGuideTurn(
     userText
   );
   const wantsTerm = /\b(terminal|shell|comando)\b/i.test(userText);
-  const wantsHealth = /\b(health|temp|temperatura|ram|gpu)\b/i.test(userText);
+  // Board shows disk use too, so disk questions land there rather than in the terminal.
+  const wantsHealth = /\b(health|temp|temperatura|ram|gpu|disco|disk|almacen\w*|espacio libre|free space)\b/i.test(userText);
   const wantsFiles = /\b(files?|archivos?)\b/i.test(userText);
   const wantsMemory = /\b(memor(y|ia)|memories)\b/i.test(userText);
   const wantsSecrets = /\b(secrets?|secretos?|vault|llavero)\b/i.test(userText);
@@ -451,9 +450,6 @@ export function polishGuideTurn(
     /\b(composer|escribe(r)? (aquí|aqui)|message (box|field)|caja de (mensaje|texto))\b/i.test(userText);
   const wantsModelPicker =
     /\b(model picker|elige(r)? (el )?modelo|cambia(r)? (el )?modelo|change model|switch model)\b/i.test(userText);
-  const wantsPlan =
-    /\b(plan|créditos?|creditos?|credits?|subscription|suscripci[oó]n)\b/i.test(userText) &&
-    /\b(open|abre|abrir|show|muestra|dónde|donde|where|ve a|go to)\b/i.test(userText);
   const wantsBoardPanel =
     /\b(panel board|board panel)\b/i.test(userText) ||
     (/\b(board)\b/i.test(userText) &&
@@ -488,8 +484,8 @@ export function polishGuideTurn(
               { type: "open_browser" },
               { type: "highlight", target: "machine.services" },
             ],
-            textEs: "¡Listo! Aquí está Services.",
-            textEn: "Done! Here's Services.",
+            textEs: "¡Listo! Aquí está Preview.",
+            textEn: "Done! Here's Preview.",
           }
         : wantsTerm && !/\b(disco|disk|df\b|almacen|espacio libre|free space)\b/i.test(userText)
           ? {
@@ -508,8 +504,8 @@ export function polishGuideTurn(
                   { type: "open_health" },
                   { type: "highlight", target: "machine.health" },
                 ],
-                textEs: "¡Claro! Aquí está Health.",
-                textEn: "Sure! Here's Health.",
+                textEs: "¡Claro! Aquí está Board, con la salud de la Jetson.",
+                textEn: "Sure! Here's Board, with the Jetson's health.",
               }
             : wantsFiles
               ? {
@@ -555,11 +551,11 @@ export function polishGuideTurn(
                       ? {
                           actions: [
                             { type: "react", emotion: "happy" },
-                            { type: "open_board" },
-                            { type: "highlight", target: "board.status" },
+                            { type: "open_health" },
+                            { type: "highlight", target: "machine.health" },
                           ],
-                          textEs: "¡Claro! Aquí está Status.",
-                          textEn: "Sure! Here's Status.",
+                          textEs: "¡Claro! El estado de la board está en Board.",
+                          textEn: "Sure! The board's status is on Board.",
                         }
                       : wantsPair
                         ? {
@@ -568,8 +564,8 @@ export function polishGuideTurn(
                               { type: "open_nav" },
                               { type: "highlight", target: "nav.pair" },
                             ],
-                            textEs: "¡Listo! Aquí está Pair.",
-                            textEn: "Done! Here's Pair.",
+                            textEs: "¡Listo! Aquí agregas una board: Set up a board.",
+                            textEn: "Done! Add a board here with Set up a board.",
                           }
                         : wantsFleet
                           ? {
@@ -611,25 +607,15 @@ export function polishGuideTurn(
                                     textEs: "¡Listo! Aquí escribes al agente.",
                                     textEn: "Done! Here's the composer.",
                                   }
-                                : wantsPlan
-                                  ? {
-                                      actions: [
-                                        { type: "react", emotion: "happy" },
-                                        { type: "open_plan" },
-                                        { type: "highlight", target: "panel.plan" },
-                                      ],
-                                      textEs: "¡Claro! Aquí está Plan.",
-                                      textEn: "Sure! Here's Plan.",
-                                    }
-                                  : wantsBoardPanel
+                                : wantsBoardPanel
                                     ? {
                                         actions: [
                                           { type: "react", emotion: "happy" },
-                                          { type: "open_board" },
-                                          { type: "highlight", target: "panel.board" },
+                                          { type: "open_health" },
+                                          { type: "highlight", target: "machine.health" },
                                         ],
-                                        textEs: "¡Listo! Aquí está el panel Board.",
-                                        textEn: "Done! Here's the Board panel.",
+                                        textEs: "¡Listo! Aquí está Board.",
+                                        textEn: "Done! Here's Board.",
                                       }
                                     : wantsChatView
                                       ? {

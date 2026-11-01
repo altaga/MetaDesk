@@ -8,9 +8,12 @@ export type DeskHints = {
 };
 
 const UI_LEGEND =
-  "UI: Chat=talk to the board LLM (model picker). Machine/Health=temp CPU GPU RAM disk. " +
-  "Machine/Terminal=shell on the board. Machine/Files=board filesystem. " +
-  "Board panel=status memory experts secrets(llavero names only). Plan=credits. Nav=pair boards.";
+  "UI: Chat=talk to the board LLM (model picker). Machine=Files, Terminal (shell on the board), " +
+  "Agents, Missions, Preview (the board's browser). Board=live health: CPU GPU RAM temp disk. " +
+  "Library=Secrets (stored once, chats use them by name; values never shown), Experts (saved " +
+  "prompts the operator can call), Memory (shared memory: facts every chat on this board reads). " +
+  "Fleet=boards and Set up a board. " +
+  "Credits are answered from context; there is no Plan screen.";
 
 function clipNames(raw: unknown, max = 16): string[] {
   if (!Array.isArray(raw)) return [];

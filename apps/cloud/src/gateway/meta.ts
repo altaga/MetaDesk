@@ -5,6 +5,7 @@ import { chatFeatures, lenBucket } from "../ops/features";
 import { recordOpsEvent, usernameFor } from "../ops/service";
 import { balance } from "../subscription/service";
 import { costUsd } from "./pricing";
+import { metaChatCompletions } from "./upstream";
 
 const MAX_OUTPUT_TOKENS = 8192;
 
@@ -127,11 +128,7 @@ export async function proxyMeta(
   }
 
   const payload = chatBody(body);
-  const upstream = await fetch(`${env.META_BASE_URL.replace(/\/$/, "")}/chat/completions`, {
-    method: "POST",
-    headers: { authorization: `Bearer ${env.META_API_KEY}`, "content-type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+  const upstream = await metaChatCompletions(env, payload);
   if (!upstream.ok || !upstream.body) {
     const detail = (await upstream.text()).slice(0, 300);
     await recordOpsEvent(env, {

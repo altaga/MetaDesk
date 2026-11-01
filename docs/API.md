@@ -74,6 +74,10 @@ Everything under `/v1/` requires a Bearer JWT; `/health` and `/v1/auth/login` ar
 | `tool` | `{"name": "run|read|list", "status": "ok|blocked", "reason"?: "…"}` |
 | `done` | `{"tokens_in": n, "tokens_out": n, "cost_usd": f, "tier": "…", "model": "…"}` |
 
+If the client disconnects mid-turn (the operator pressed Stop), the board still saves
+the reply: whatever text arrived, followed by `(stopped)` on its own line, or just
+`(stopped)` when nothing did. The session gets its fallback title the same way.
+
 ## Ops / traces (debug)
 
 | Endpoint | Who | What |
@@ -100,7 +104,7 @@ Phases: `plan` · `apply` · `result` · `done`
 | Nova | `POST /v1/guide/message/stream` |
 | Chat on board | `/v1/devices/{id}/api/chat/message/stream` |
 | Files | `/v1/devices/{id}/api/edge/files` |
-| Meta (board only) | `/v1/gateway/meta/chat/completions` |
+| Meta (board only) | `/v1/gateway/meta/chat/completions` (device token; body forwarded to Meta, `stream` forced on, metered in `usage_ledger`) |
 
 ## Safe install (board chat tools)
 

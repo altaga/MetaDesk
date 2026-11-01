@@ -63,6 +63,7 @@ Cloud (from `apps/cloud`):
 
 ```bash
 npx wrangler dev
+npx wrangler deploy -c egress.wrangler.toml   # Meta egress Worker, first time and when it changes
 npx wrangler deploy
 npx wrangler d1 migrations apply metadesk --remote
 ```
@@ -125,5 +126,9 @@ npx wrangler d1 migrations apply metadesk --remote
   hardware.
 - Web search returns mock results when no key is set.
 - TOTP is implemented but off by default (`AUTH_REQUIRE_TOTP=false`).
-- The cloud tiers stay inert until `META_API_KEY` is present; the board falls back to
-  local with reason `no_meta_key_fallback_local`.
+- A paired board reaches Muse through the Worker gateway with its device token; an
+  unpaired board with no `META_API_KEY` (dev only) falls back to local with reason
+  `no_meta_key_fallback_local`.
+- The Worker calls Meta through `metadesk-meta-egress`, pinned to `aws:us-east-1`:
+  from some edge regions (Hong Kong) the preview API answers `model_not_found` for
+  valid models. Keep the main Worker unpinned so it stays near D1 and the boards.

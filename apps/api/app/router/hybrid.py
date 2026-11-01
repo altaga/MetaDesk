@@ -1,7 +1,8 @@
 """Tier resolution and the streaming turn generator.
 
-The hybrid router combines the intent heuristics, the ``LLM_MODE`` policy, the
-Meta API key availability and the daily cloud budget into one decision, then
+The hybrid router combines the intent heuristics, the ``LLM_MODE`` policy, whether
+a cloud route exists (the paired gateway, or a local Meta key) and the daily cloud
+budget into one decision, then
 streams the turn from the matching provider.
 """
 
@@ -60,6 +61,11 @@ CLOUD_UNREACHABLE_MESSAGE = (
     "network or Meta API credentials and try again."
 )
 
+CLOUD_CREDIT_MESSAGE = (
+    "This account's cloud credit is used up, so Muse could not answer. "
+    "Pick the local tier, or try again once the credit resets."
+)
+
 
 def model_for_tier(tier: str) -> str:
     """Map a tier onto its concrete model name."""
@@ -109,7 +115,7 @@ def resolve(text: str, tier_request: str | None) -> RouteDecision:
         if tier == "local":
             tier, reason = "fast", "mode_cloud_only_remap"
     else:  # hybrid
-        if tier != "local" and not settings.meta_api_key:
+        if tier != "local" and not meta.available():
             tier, reason = "local", "no_meta_key_fallback_local"
         if tier != "local" and cloud_spend_today_usd() >= settings.meta_daily_budget_usd:
             tier, reason = "local", "daily_budget_exhausted"
@@ -273,9 +279,14 @@ async def stream_turn(
         if titles is not None and (rest := titles.flush()):
             assistant_text += rest
             yield ("token", {"text": rest})
-    except Exception:  # noqa: BLE001 - degrade gracefully, never crash the stream
+    except Exception as exc:  # noqa: BLE001 - degrade gracefully, never crash the stream
         failed = True
-        notice = LOCAL_OFFLINE_MESSAGE if decision.tier == "local" else CLOUD_UNREACHABLE_MESSAGE
+        if decision.tier == "local":
+            notice = LOCAL_OFFLINE_MESSAGE
+        elif isinstance(exc, meta.CloudCreditSpent):
+            notice = CLOUD_CREDIT_MESSAGE
+        else:
+            notice = CLOUD_UNREACHABLE_MESSAGE
         assistant_text += notice
         yield ("token", {"text": notice})
 

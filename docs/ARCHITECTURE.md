@@ -243,8 +243,9 @@ Bootstrap auto-creates the single plan. **No Stripe, no SKUs.**
 
 | Piece | Where | How |
 |---|---|---|
-| `apps/web` | Vercel | `vercel.json` → `framework: nextjs`; BFF proxies to the Worker |
-| `apps/cloud` | Cloudflare Workers | `wrangler.toml` (D1 `metadesk`, DO `DeviceRelay`) |
+| `apps/web` | Vercel | `apps/web/vercel.json` → `framework: nextjs`, functions in `sin1` near the boards and D1; BFF proxies to the Worker |
+| `apps/cloud` | Cloudflare Workers | `wrangler.toml` (D1 `metadesk`, DO `DeviceRelay`), unpinned |
+| Meta egress | Cloudflare Workers | `egress.wrangler.toml`: `metadesk-meta-egress`, pinned to `aws:us-east-1`, no public route, reached only by the `META_EGRESS` service binding |
 | `apps/api` | Jetson / board-emu | uvicorn + `board-agent` systemd; pairs outbound |
 
 See [API.md](./API.md) for lanes, CORS, HMAC, and ops traces.

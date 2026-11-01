@@ -29,7 +29,7 @@ export type Turn = {
 function routeNote(reason: string, requested: Tier | undefined): string | undefined {
   const cloud = requested === "fast" || requested === "heavy" || requested === "ultra";
   if (reason === "no_meta_key_fallback_local" && requested !== "local") {
-    return "Cloud tiers are off on this board (no Meta Model API key yet), so this ran locally.";
+    return "Cloud tiers are off: this board is not paired to the cloud, so this ran locally.";
   }
   if (reason === "daily_budget_exhausted") return "Today's cloud budget is spent, so this ran locally.";
   if (reason === "mode_local_only" && cloud) return "This board is in local-only mode, so this ran locally.";

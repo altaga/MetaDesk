@@ -4,6 +4,13 @@ compatibility_date = "2026-10-01"
 compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 
+# Meta calls leave through metadesk-meta-egress (egress.wrangler.toml), which is
+# pinned near the Meta Model API; this Worker stays close to D1 and the boards.
+# Deploy the egress Worker first: npx wrangler deploy -c egress.wrangler.toml
+[[services]]
+binding = "META_EGRESS"
+service = "metadesk-meta-egress"
+
 [observability]
 enabled = true
 

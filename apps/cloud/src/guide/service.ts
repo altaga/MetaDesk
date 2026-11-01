@@ -2,6 +2,7 @@ import { deviceView, listDevices, ownedDevice, type DeviceRow } from "../devices
 import { Env, nowSec } from "../env";
 import { HttpError } from "../http";
 import { costUsd } from "../gateway/pricing";
+import { metaChatCompletions } from "../gateway/upstream";
 import { guideFeatures } from "../ops/features";
 import { recordOpsEvent, usernameFor } from "../ops/service";
 import { balance } from "../subscription/service";
@@ -74,19 +75,15 @@ async function callGuide(
   messages: Array<{ role: string; content: string }>
 ): Promise<{ text: string; prompt_tokens: number; completion_tokens: number }> {
   if (!env.META_API_KEY) throw new HttpError(503, "gateway_unconfigured");
-  const upstream = await fetch(`${env.META_BASE_URL.replace(/\/$/, "")}/chat/completions`, {
-    method: "POST",
-    headers: { authorization: `Bearer ${env.META_API_KEY}`, "content-type": "application/json" },
-    body: JSON.stringify({
-      model: GUIDE_MODEL,
-      messages,
-      // Muse reasons before it answers; uncapped, a short budget is all reasoning
-      // and the reply comes back empty. Nova only needs a line or two.
-      reasoning_effort: "minimal",
-      max_tokens: 1200,
-      temperature: 0.6,
-      stream: false,
-    }),
+  const upstream = await metaChatCompletions(env, {
+    model: GUIDE_MODEL,
+    messages,
+    // Muse reasons before it answers; uncapped, a short budget is all reasoning
+    // and the reply comes back empty. Nova only needs a line or two.
+    reasoning_effort: "minimal",
+    max_tokens: 1200,
+    temperature: 0.6,
+    stream: false,
   });
   const raw = await upstream.text();
   if (!upstream.ok) {

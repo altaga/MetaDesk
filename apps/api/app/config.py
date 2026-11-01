@@ -61,6 +61,9 @@ class Settings(BaseSettings):
     meta_model_fast: str = Field(default="muse-spark-1.3", validation_alias=_choice("META_MODEL_FAST"))
     meta_model_heavy: str = Field(default="muse-wonder-1.0", validation_alias=_choice("META_MODEL_HEAVY"))
     meta_model_ultra: str = Field(default="muse-wonder-full-1.0", validation_alias=_choice("META_MODEL_ULTRA"))
+    #: Muse reasons before it answers, and reasoning shares the output budget.
+    #: Empty leaves the model's own default.
+    meta_reasoning_effort: str = Field(default="low", validation_alias=_choice("META_REASONING_EFFORT"))
     meta_usd_per_1m_input: float = Field(default=4.00, validation_alias=_choice("META_USD_PER_1M_INPUT"))
     meta_usd_per_1m_output: float = Field(default=20.00, validation_alias=_choice("META_USD_PER_1M_OUTPUT"))
     meta_daily_budget_usd: float = Field(default=2.00, validation_alias=_choice("META_DAILY_BUDGET_USD"))

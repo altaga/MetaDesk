@@ -2,6 +2,8 @@ export interface Env {
   DB: D1Database;
   RELAY: DurableObjectNamespace;
   META_BASE_URL: string;
+  /** metadesk-meta-egress, pinned near the Meta Model API. Direct fetch when absent (local dev). */
+  META_EGRESS?: Fetcher;
   TAVILY_KEY_CAP: string;
   BOOTSTRAP_USERNAME: string;
   BOOTSTRAP_PASSWORD?: string;

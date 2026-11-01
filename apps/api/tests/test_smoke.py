@@ -19,6 +19,9 @@ os.environ["DESK_ROOT"] = str(_TMP_ROOT / "workspace")
 os.environ["OLLAMA_BASE_URL"] = "http://127.0.0.1:59999"
 os.environ["LLM_MODE"] = "hybrid"
 os.environ["META_API_KEY"] = ""
+# Never pick up a real pairing (or its cloud route) from the machine running the tests.
+os.environ["STATE_DIR"] = str(_TMP_ROOT / "state")
+os.environ["DEVICE_TOKEN"] = ""
 os.environ["BOOTSTRAP_USERNAME"] = "admin"
 os.environ["BOOTSTRAP_PASSWORD"] = "changeme"
 
@@ -269,3 +272,68 @@ def test_stopped_reply_is_kept(client, auth_headers, monkeypatch):
     assert messages[-1]["content"] == f"Half of an answer\n\n{service.STOPPED_MARK}"
     listed = client.get("/v1/chat/sessions", headers=auth_headers).json()["sessions"]
     assert any(row["id"] == session_id and row["title"] == "Explain the relay" for row in listed)
+
+
+def test_paired_board_reaches_muse_through_the_gateway(monkeypatch):
+    from app.router import hybrid, meta
+
+    monkeypatch.setattr(meta, "cloud_config", lambda: ("https://cloud.example", "device-tok"))
+    monkeypatch.setattr(meta.settings, "meta_api_key", "local-key")
+    assert meta._endpoint() == ("https://cloud.example/v1/gateway/meta/chat/completions", "device-tok")
+    decision = hybrid.resolve("Refactor the relay", "fast")
+    assert (decision.tier, decision.reason) == ("fast", "explicit_request")
+
+
+def test_no_cloud_route_falls_back_to_local(monkeypatch):
+    from app.router import hybrid, meta
+
+    monkeypatch.setattr(meta, "cloud_config", lambda: None)
+    monkeypatch.setattr(meta.settings, "meta_api_key", "")
+    decision = hybrid.resolve("Refactor the relay", "heavy")
+    assert (decision.tier, decision.reason) == ("local", "no_meta_key_fallback_local")
+
+
+def test_gateway_stream_and_spent_credit(monkeypatch):
+    import asyncio
+    import json
+
+    import httpx
+
+    from app.router import hybrid, meta
+
+    seen: dict = {}
+    status = {"code": 200}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["url"] = str(request.url)
+        seen["auth"] = request.headers.get("authorization")
+        seen["body"] = json.loads(request.content)
+        if status["code"] == 402:
+            return httpx.Response(402, json={"detail": "cloud_credit_used"})
+        frames = [
+            {"choices": [{"delta": {"content": "Hi from "}}]},
+            {"choices": [{"delta": {"content": "Muse"}}]},
+        ]
+        body = "".join(f"data: {json.dumps(frame)}\n\n" for frame in frames) + "data: [DONE]\n\n"
+        return httpx.Response(200, text=body, headers={"content-type": "text/event-stream"})
+
+    real_client = httpx.AsyncClient
+    monkeypatch.setattr(meta.httpx, "AsyncClient", lambda **kw: real_client(transport=httpx.MockTransport(handler), **kw))
+    monkeypatch.setattr(meta, "cloud_config", lambda: ("https://cloud.example", "device-tok"))
+    monkeypatch.setattr(hybrid, "record_usage", lambda *args: None)
+
+    async def reply() -> str:
+        text = ""
+        async for kind, payload in hybrid.stream_turn(text="Refactor the relay", tier_request="fast", allow_tools=False):
+            if kind == "token":
+                text += payload["text"]
+        return text
+
+    assert asyncio.run(reply()) == "Hi from Muse"
+    assert seen["url"] == "https://cloud.example/v1/gateway/meta/chat/completions"
+    assert seen["auth"] == "Bearer device-tok"
+    assert seen["body"]["model"] == meta.settings.meta_model_fast
+    assert seen["body"]["reasoning_effort"] == meta.settings.meta_reasoning_effort
+
+    status["code"] = 402
+    assert asyncio.run(reply()) == hybrid.CLOUD_CREDIT_MESSAGE

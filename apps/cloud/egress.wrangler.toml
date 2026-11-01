@@ -1,0 +1,14 @@
+name = "metadesk-meta-egress"
+main = "src/egress/index.ts"
+compatibility_date = "2026-10-01"
+# Reachable only through the main Worker's service binding.
+workers_dev = false
+preview_urls = false
+
+# Run next to the Meta Model API. From some edge regions the preview API answers
+# model_not_found for valid models, so calls must not leave from the caller's edge.
+[placement]
+region = "aws:us-east-1"
+
+[vars]
+META_BASE_URL = "https://api.meta.ai/v1"

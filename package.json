@@ -1,0 +1,17 @@
+{
+  "name": "metadesk",
+  "private": true,
+  "version": "0.1.0",
+  "description": "MetaDesk — an operator desk whose brain lives on your Jetson, powered by Meta Muse models",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "install:api": "cd apps/api && pip install -r requirements.txt",
+    "install:web": "cd apps/web && npm install",
+    "dev:api": "cd apps/api && python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000",
+    "dev:web": "cd apps/web && npm run dev",
+    "install:agent": "cd apps/board-agent && pip install -r requirements.txt",
+    "dev:agent": "cd apps/board-agent && python -m metadesk_agent"
+  }
+}

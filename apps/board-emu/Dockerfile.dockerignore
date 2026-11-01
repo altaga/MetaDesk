@@ -1,0 +1,10 @@
+# The build context is apps/; only the board API and agent sources go in.
+**
+!api/requirements.txt
+!api/app/**
+!board-agent/requirements.txt
+!board-agent/metadesk_agent/**
+!board-emu/entrypoint.sh
+**/__pycache__/
+**/*.pyc
+**/*.bak*

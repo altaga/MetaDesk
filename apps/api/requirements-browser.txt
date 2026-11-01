@@ -1,0 +1,8 @@
+# Optional: the board browser runtime (screenshots, Live preview, demos).
+# Install on the board host, then download the Chromium build:
+#   pip install -r requirements-browser.txt
+#   playwright install chromium
+playwright==1.49.1
+# Static ffmpeg with libx264, used for ```record``` mp4/gif output. The board's
+# distro ffmpeg is often NVENC-only, which a headless board cannot use.
+imageio-ffmpeg==0.5.1

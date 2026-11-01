@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="MetaDesk">
+  <rect x="16" y="16" width="480" height="480" rx="124" fill="#0866FF"/>
+
+  <!-- M: two legs and a valley, one continuous stroke -->
+  <path d="M136 332 V180 L256 300 L376 180 V332" fill="none" stroke="#FFFFFF" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- the desk it stands on -->
+  <path d="M136 396 H376" fill="none" stroke="#FFFFFF" stroke-opacity="0.5" stroke-width="22" stroke-linecap="round"/>
+  <!-- Muse spark -->
+  <path d="M404 92 L416 126 L450 138 L416 150 L404 184 L392 150 L358 138 L392 126 Z" fill="#FFFFFF"/>
+</svg>

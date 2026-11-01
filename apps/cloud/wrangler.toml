@@ -1,0 +1,42 @@
+name = "metadesk-cloud"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+# Meta calls leave through metadesk-meta-egress (egress.wrangler.toml), which is
+# pinned near the Meta Model API; this Worker stays close to D1 and the boards.
+# Deploy the egress Worker first: npx wrangler deploy -c egress.wrangler.toml
+[[services]]
+binding = "META_EGRESS"
+service = "metadesk-meta-egress"
+
+[observability]
+enabled = true
+
+[observability.logs]
+invocation_logs = true
+head_sampling_rate = 1
+
+[vars]
+# Meta Model API (OpenAI-compatible). Key custody stays in the Worker.
+META_BASE_URL = "https://api.meta.ai/v1"
+# Lifetime credits on the search key, shared by every account.
+TAVILY_KEY_CAP = "1500"
+BOOTSTRAP_USERNAME = "admin"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "metadesk"
+database_id = "23c0be2b-7db9-43d1-9e88-aac569acef1e"
+migrations_dir = "migrations"
+
+[[durable_objects.bindings]]
+name = "RELAY"
+class_name = "DeviceRelay"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["DeviceRelay"]
+
+# Secrets (wrangler secret put): JWT_SECRET, BOOTSTRAP_PASSWORD, META_API_KEY, TAVILY_API_KEY

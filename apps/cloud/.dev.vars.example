@@ -1,0 +1,9 @@
+# Local-only secrets for `wrangler dev`. Copy to .dev.vars (git-ignored).
+# Production values go in with `wrangler secret put <NAME>`.
+
+JWT_SECRET=dev-change-me
+BOOTSTRAP_PASSWORD=changeme
+META_API_KEY=
+TAVILY_API_KEY=
+# Set to "required" to enforce X-Desk-Signature on /v1/gateway/* (optional until then).
+GATEWAY_HMAC=

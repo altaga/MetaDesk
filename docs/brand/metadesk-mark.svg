@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="MetaDesk">
+  <defs>
+    <linearGradient id="metadesk-loop" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0064E0"/>
+      <stop offset="0.52" stop-color="#7A5CFF"/>
+      <stop offset="1" stop-color="#FF5C87"/>
+    </linearGradient>
+    <linearGradient id="metadesk-glass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.98"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.74"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="16" y="16" width="480" height="480" rx="120" fill="url(#metadesk-loop)"/>
+  <rect x="16" y="16" width="480" height="480" rx="120" fill="none" stroke="#FFFFFF" stroke-opacity="0.14" stroke-width="4"/>
+
+  <!-- desk surface -->
+  <rect x="126" y="150" width="260" height="168" rx="28" fill="none" stroke="url(#metadesk-glass)" stroke-width="20"/>
+  <!-- stand -->
+  <path d="M256 318 L256 366" fill="none" stroke="url(#metadesk-glass)" stroke-width="20" stroke-linecap="round"/>
+  <path d="M198 374 L314 374" fill="none" stroke="url(#metadesk-glass)" stroke-width="20" stroke-linecap="round"/>
+
+  <!-- Muse spark -->
+  <path d="M354 96 L365 129 L398 140 L365 151 L354 184 L343 151 L310 140 L343 129 Z" fill="#FFFFFF"/>
+</svg>

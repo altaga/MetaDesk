@@ -1,0 +1,1766 @@
+/* Desk — the signed-in console, in the shape of the Meta developer platform:
+   a full-height sidebar with icon navigation, soft 24px cards, pill controls and
+   large calm page titles. Loaded after globals.css, so it refines the shared atoms. */
+
+/* ---------- shell ---------- */
+
+.md-shell {
+  display: grid;
+  grid-template-columns: 272px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  flex-direction: unset;
+}
+
+.md-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sp-2);
+  min-height: 0;
+  padding: var(--md-sp-5) var(--md-sp-3) var(--md-sp-3);
+  background: var(--md-canvas);
+  border-right: 1px solid var(--md-border-subtle);
+  overflow-y: auto;
+}
+
+.md-side__top {
+  padding: var(--md-sp-1) var(--md-sp-3) var(--md-sp-4);
+}
+
+.md-side__top .md-brand {
+  font-size: 1.15rem;
+  font-weight: var(--md-fw-semibold);
+}
+
+.md-side__top .md-brand img {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+}
+
+.md-side__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.md-side__grow {
+  flex: 1;
+  min-height: var(--md-sp-4);
+}
+
+.md-nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 var(--md-sp-4);
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--md-text);
+  font-size: 1rem;
+  font-weight: var(--md-fw-medium);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--md-dur-fast) var(--md-ease), color var(--md-dur-fast) var(--md-ease);
+}
+
+.md-nav .md-icon {
+  flex: none;
+  color: var(--md-text-2);
+}
+
+.md-nav:hover {
+  background: var(--md-raised);
+}
+
+.md-nav--active {
+  background: rgba(8, 102, 255, 0.16);
+  color: var(--md-accent-text);
+}
+
+.md-nav--active .md-icon {
+  color: var(--md-accent-text);
+}
+
+.md-side__user {
+  display: flex;
+  align-items: center;
+  gap: var(--md-sp-3);
+  padding: var(--md-sp-3);
+  margin-top: var(--md-sp-1);
+  border-top: 1px solid var(--md-border-subtle);
+}
+
+.md-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--md-accent);
+  color: var(--md-on-accent);
+  font-size: 0.8rem;
+  font-weight: var(--md-fw-bold);
+  letter-spacing: 0.02em;
+}
+
+.md-side__who {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.md-side__who strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--md-fs-md);
+  font-weight: var(--md-fw-semibold);
+}
+
+.md-side__state {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--md-text-2);
+  font-size: var(--md-fs-sm);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.md-side__user .md-btn {
+  display: none;
+}
+
+.md-iconbtn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--md-text-2);
+  cursor: pointer;
+}
+
+.md-iconbtn:hover {
+  background: var(--md-raised);
+  color: var(--md-text);
+}
+
+/* ---------- main column ---------- */
+
+.md-main {
+  padding: var(--md-sp-8) clamp(var(--md-sp-5), 3.5vw, 56px) var(--md-sp-10);
+}
+
+.md-viewhead h1,
+.md-chat__heading {
+  font-weight: var(--md-fw-semibold);
+  letter-spacing: -0.03em;
+}
+
+.md-viewhead h1 {
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  line-height: 1.1;
+}
+
+.md-viewhead__note {
+  font-size: var(--md-fs-md);
+}
+
+/* ---------- atoms ---------- */
+
+.md-btn {
+  height: 40px;
+  padding: 0 var(--md-sp-5);
+  border: 0;
+  border-radius: 999px;
+  background: var(--md-raised);
+  font-size: var(--md-fs-md);
+  font-weight: var(--md-fw-semibold);
+}
+
+.md-btn:hover:not(:disabled) {
+  background: var(--md-raised-hover);
+  border-color: transparent;
+}
+
+.md-btn--primary {
+  background: var(--md-accent);
+  color: var(--md-on-accent);
+}
+
+.md-btn--primary:hover:not(:disabled) {
+  background: var(--md-accent-hover);
+}
+
+.md-btn--ghost {
+  background: transparent;
+  color: var(--md-text-2);
+}
+
+.md-btn--ghost:hover:not(:disabled) {
+  background: var(--md-raised);
+  color: var(--md-text);
+}
+
+.md-btn--sm {
+  height: 34px;
+  padding: 0 var(--md-sp-4);
+  border-radius: 999px;
+  font-size: var(--md-fs-base);
+}
+
+.md-input {
+  min-height: 44px;
+  border-radius: 14px;
+  padding: var(--md-sp-2) var(--md-sp-4);
+}
+
+.md-chip {
+  height: 26px;
+  padding: 0 var(--md-sp-3);
+  font-size: var(--md-fs-sm);
+}
+
+.md-card {
+  border-radius: var(--md-r-xl);
+  box-shadow: none;
+}
+
+.md-tabs {
+  padding: 4px;
+  gap: 2px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--md-raised);
+}
+
+.md-tab {
+  height: 36px;
+  padding: 0 var(--md-sp-4);
+  border-radius: 999px;
+  border: 0;
+  font-size: var(--md-fs-md);
+  font-weight: var(--md-fw-semibold);
+}
+
+.md-tab--on {
+  background: var(--md-canvas);
+  box-shadow: 0 0 0 1px var(--md-border);
+}
+
+.md-tierpick button {
+  height: 32px;
+  font-size: var(--md-fs-base);
+}
+
+.md-composer__box {
+  border-radius: 20px;
+}
+
+.md-bubble {
+  border-radius: 22px;
+}
+
+.md-thread {
+  border-radius: 28px;
+  background: var(--md-surface);
+}
+
+.md-thread__head {
+  background: transparent;
+}
+
+.md-metric {
+  padding: var(--md-sp-6);
+}
+
+.md-metric__value {
+  font-size: clamp(2rem, 3.2vw, 2.6rem);
+  font-weight: var(--md-fw-medium);
+}
+
+.md-metric__label {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--md-fs-md);
+  color: var(--md-text-2);
+}
+
+.md-status {
+  height: 32px;
+  border-radius: 999px;
+}
+
+/* ---------- narrow screens: the sidebar folds into a compact header + tab strip ---------- */
+
+@media (max-width: 900px) {
+  .md-shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .md-side {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "top user"
+      "nav nav";
+    align-items: center;
+    gap: 0 var(--md-sp-3);
+    padding: var(--md-sp-2) var(--md-sp-3) 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--md-border-subtle);
+    overflow: visible;
+  }
+
+  .md-side__top {
+    grid-area: top;
+    padding: var(--md-sp-1) var(--md-sp-2);
+  }
+
+  .md-side__user {
+    grid-area: user;
+    margin: 0;
+    padding: 0;
+    border-top: 0;
+  }
+
+  .md-side__who {
+    display: none;
+  }
+
+  .md-side__nav {
+    grid-area: nav;
+    flex-direction: row;
+    gap: 4px;
+    padding: var(--md-sp-2) 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .md-side__nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .md-nav {
+    width: auto;
+    flex: none;
+    min-height: 44px;
+    padding: 0 var(--md-sp-4);
+    gap: 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .md-side__grow {
+    display: none;
+  }
+
+  .md-main {
+    padding: var(--md-sp-5) var(--md-sp-4) var(--md-sp-8);
+  }
+
+  .md-chat__aside {
+    max-height: 176px;
+  }
+
+  .md-chat__emptyrail {
+    min-height: 64px;
+  }
+}
+
+/* ---------- Library: three tidy cards ---------- */
+
+.md-library {
+  gap: var(--md-sp-5);
+  align-items: stretch;
+}
+
+.md-vault,
+.md-expert,
+.md-memory {
+  padding: 28px;
+  gap: var(--md-sp-4);
+}
+
+.md-vault p,
+.md-expert p,
+.md-memory p {
+  margin: 0;
+}
+
+.md-vault__head h2,
+.md-expert__head h2,
+.md-memory__head h2 {
+  font-size: var(--md-fs-xl);
+  font-weight: var(--md-fw-semibold);
+  letter-spacing: -0.02em;
+}
+
+.md-vault__note,
+.md-expert__note,
+.md-memory__note {
+  font-size: var(--md-fs-md);
+  line-height: var(--md-lh-base);
+  color: var(--md-text-2);
+}
+
+/* The empty/loading state is a real, quiet surface instead of a stray line. */
+.md-slot {
+  display: grid;
+  place-items: center;
+  min-height: 88px;
+  padding: var(--md-sp-4);
+  border: 1px dashed var(--md-border);
+  border-radius: 18px;
+  background: var(--md-inset);
+  color: var(--md-text-3);
+  font-size: var(--md-fs-md);
+}
+
+.md-vault__list li,
+.md-expert__item,
+.md-memory__item {
+  border-radius: 16px;
+  padding: var(--md-sp-3) var(--md-sp-4);
+}
+
+/* Forms sit at the foot of the card, under a hairline and a small label. */
+.md-vault__form,
+.md-expert__form,
+.md-memory__form {
+  margin-top: auto;
+  padding-top: var(--md-sp-4);
+  border-top: 1px solid var(--md-border-subtle);
+  align-items: center;
+}
+
+.md-vault__form::before,
+.md-expert__form::before,
+.md-memory__form::before {
+  grid-column: 1 / -1;
+  color: var(--md-text-3);
+  font-size: var(--md-fs-xs);
+  font-weight: var(--md-fw-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.md-vault__form::before {
+  content: "Add a secret";
+}
+
+.md-expert__form::before {
+  content: "Add an expert";
+}
+
+.md-memory__form::before {
+  content: "Add a fact";
+}
+
+.md-vault__form {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+}
+
+.md-memory__form {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
+}
+
+.md-vault__form .md-btn,
+.md-memory__form .md-btn {
+  grid-column: auto;
+  justify-self: end;
+  min-width: 96px;
+}
+
+.md-expert__form .md-btn {
+  grid-column: 1 / -1;
+  justify-self: end;
+  min-width: 120px;
+}
+
+.md-expert__methodbox {
+  border-radius: 16px;
+}
+
+/* A disabled primary reads as "not yet", not as a dimmed brand button. */
+.md-btn--primary:disabled {
+  background: var(--md-raised);
+  color: var(--md-text-3);
+  opacity: 1;
+}
+
+@media (max-width: 860px) {
+  .md-vault__form,
+  .md-memory__form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .md-vault__form .md-btn,
+  .md-memory__form .md-btn,
+  .md-expert__form .md-btn {
+    justify-self: stretch;
+  }
+}
+
+/* ---------- alerts, machine header, preview toolbar ---------- */
+
+/* Errors are a soft alert surface, not a stray red line. */
+.md-error {
+  margin: 0;
+  padding: var(--md-sp-3) var(--md-sp-4);
+  border: 1px solid var(--md-bad-line);
+  border-radius: 14px;
+  background: var(--md-bad-soft);
+  color: var(--md-bad-text);
+  font-size: var(--md-fs-md);
+  line-height: var(--md-lh-base);
+}
+
+/* Header: title block and tab pill wrap instead of running off the edge. */
+.md-viewhead {
+  flex-wrap: wrap;
+  row-gap: var(--md-sp-3);
+}
+
+.md-viewhead > div:first-child {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.md-viewhead .md-tabs {
+  max-width: 100%;
+}
+
+.md-preview {
+  max-width: none;
+  gap: var(--md-sp-4);
+}
+
+.md-preview__note {
+  max-width: 52rem;
+  color: var(--md-text-2);
+  line-height: var(--md-lh-base);
+}
+
+.md-preview__toolbar {
+  padding: var(--md-sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sp-4);
+}
+
+.md-preview__bar {
+  flex-wrap: wrap;
+}
+
+.md-preview__bar .md-input {
+  flex: 1 1 auto;
+}
+
+.md-preview__bar .md-btn--ghost {
+  background: var(--md-raised);
+  color: var(--md-text);
+}
+
+.md-preview__bar .md-btn--ghost:disabled {
+  background: transparent;
+  color: var(--md-text-3);
+  opacity: 1;
+}
+
+.md-preview__controls {
+  gap: var(--md-sp-4);
+  padding-top: var(--md-sp-4);
+}
+
+/* A real switch instead of the browser's default checkbox. */
+.md-preview__toggle input {
+  appearance: none;
+  flex: none;
+  position: relative;
+  width: 40px;
+  height: 24px;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--md-raised);
+  box-shadow: inset 0 0 0 1px var(--md-border);
+  cursor: pointer;
+  transition: background var(--md-dur-fast) var(--md-ease);
+}
+
+.md-preview__toggle input::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--md-text-2);
+  transition: transform var(--md-dur-fast) var(--md-ease), background var(--md-dur-fast) var(--md-ease);
+}
+
+.md-preview__toggle input:checked {
+  background: var(--md-accent);
+}
+
+.md-preview__toggle input:checked::after {
+  transform: translateX(16px);
+  background: #fff;
+}
+
+.md-preview__toggle input:focus-visible {
+  outline: 2px solid var(--md-accent);
+  outline-offset: 2px;
+}
+
+.md-preview__stage {
+  min-height: 360px;
+  border-radius: 20px;
+  place-items: center;
+}
+
+@media (max-width: 720px) {
+  .md-preview__bar {
+    flex-wrap: wrap;
+  }
+}
+
+/* ---------- Fleet: Add a Jetson ---------- */
+
+.md-addjetson {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sp-5);
+  padding: 28px;
+  min-width: 0;
+}
+
+.md-addjetson__head h2 {
+  margin: 0 0 var(--md-sp-2);
+  font-size: var(--md-fs-xl);
+  font-weight: var(--md-fw-semibold);
+  letter-spacing: -0.02em;
+}
+
+.md-addjetson__head p {
+  margin: 0;
+  font-size: var(--md-fs-md);
+  line-height: var(--md-lh-base);
+}
+
+.md-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sp-5);
+}
+
+.md-step {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: var(--md-sp-4);
+  align-items: start;
+}
+
+.md-step__n {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(8, 102, 255, 0.16);
+  color: var(--md-accent-text);
+  font-size: var(--md-fs-md);
+  font-weight: var(--md-fw-bold);
+}
+
+.md-step__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sp-2);
+  min-width: 0;
+}
+
+.md-step__body h3 {
+  margin: 0;
+  font-size: var(--md-fs-lg);
+  font-weight: var(--md-fw-semibold);
+  line-height: 32px;
+}
+
+.md-step__body p {
+  margin: 0;
+  font-size: var(--md-fs-base);
+  line-height: var(--md-lh-base);
+}
+
+.md-addjetson__form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--md-sp-2);
+}
+
+.md-addjetson__done {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sp-2);
+  padding: var(--md-sp-4);
+  border: 1px solid var(--md-good-line);
+  border-radius: 18px;
+  background: var(--md-good-soft);
+}
+
+.md-addjetson__done strong {
+  color: var(--md-good);
+}
+
+.md-copycode {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--md-sp-2);
+  padding: var(--md-sp-3) var(--md-sp-3) var(--md-sp-3) var(--md-sp-4);
+  border: 1px solid var(--md-border);
+  border-radius: 16px;
+  background: var(--md-inset);
+  min-width: 0;
+}
+
+.md-copycode code {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--md-mono);
+  font-size: var(--md-fs-sm);
+  line-height: 1.6;
+  color: var(--md-text);
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  user-select: all;
+}
+
+.md-copycode__btn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--md-raised);
+  color: var(--md-text-2);
+  cursor: pointer;
+}
+
+.md-copycode__btn:hover {
+  color: var(--md-text);
+}
+
+.md-fleet {
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 460px);
+  gap: var(--md-sp-5);
+}
+
+@media (max-width: 1100px) {
+  .md-fleet {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- review fixes ---------- */
+
+/* The page already spaces its children; the head's own margin doubled the gap. */
+.md-page > .md-viewhead {
+  margin-bottom: 0;
+}
+
+/* In a column (narrow screens) the title block must size to its content, never to a flex-basis. */
+@media (max-width: 900px) {
+  .md-viewhead > div:first-child {
+    flex: none;
+  }
+
+  .md-chat__aside {
+    max-height: 204px;
+  }
+}
+
+/* Files: a path pill, and rows that never wrap their size onto a second line. */
+.md-files__bar .md-crumb {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 var(--md-sp-4);
+  border-radius: 999px;
+  background: var(--md-raised);
+  color: var(--md-text-2);
+  font-size: var(--md-fs-base);
+}
+
+.md-file {
+  height: auto;
+  min-height: var(--md-ctl);
+  padding-top: var(--md-sp-1);
+  padding-bottom: var(--md-sp-1);
+}
+
+.md-file > :first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.md-file__size {
+  flex: none;
+  white-space: nowrap;
+}
+
+/* Agents and missions use the full column like every other tab. */
+.md-jobs {
+  max-width: none;
+}
+
+.md-jobs__note {
+  max-width: 52rem;
+  color: var(--md-text-2);
+}
+
+@media (max-width: 900px) {
+  .md-files__panel {
+    min-height: 0;
+  }
+}
+
+/* ---------- hackathon pass ---------- */
+
+/* An error slot with nothing in it must not render as an empty red bar. */
+.md-error:empty {
+  display: none;
+}
+
+/* Chat Markdown: fenced blocks and inline code. */
+.md-bubble .md-rich__code {
+  margin: var(--md-sp-3) 0;
+  padding: var(--md-sp-3) var(--md-sp-4);
+  border: 1px solid var(--md-border-subtle);
+  border-radius: 14px;
+  background: var(--md-inset);
+  font-family: var(--md-mono);
+  font-size: var(--md-fs-base);
+  line-height: 1.55;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.md-bubble .md-rich__inline {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--md-inset);
+  font-family: var(--md-mono);
+  font-size: 0.92em;
+}
+
+/* Login: room between brand and title, and a real tap target for the way back. */
+.md-auth__card {
+  padding: 36px;
+  border-radius: 28px;
+}
+
+.md-auth__card .md-brand {
+  margin-bottom: var(--md-sp-6);
+}
+
+.md-auth__title {
+  margin: 0 0 var(--md-sp-2);
+  font-size: 1.6rem;
+  font-weight: var(--md-fw-semibold);
+  letter-spacing: -0.02em;
+}
+
+.md-auth__card a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  color: var(--md-text-2);
+}
+
+.md-auth__card a:hover {
+  color: var(--md-text);
+}
+
+/* Touch screens: every control at least 40px tall. */
+@media (max-width: 900px) {
+  .md-tab,
+  .md-btn--sm,
+  .md-tierpick button {
+    min-height: 40px;
+  }
+
+  .md-session__del,
+  .md-copycode__btn {
+    width: 40px;
+    height: 40px;
+    opacity: 1;
+  }
+
+  .md-memory__toggle {
+    min-height: 40px;
+  }
+}
+
+.md-memory__toggle {
+  min-height: 32px;
+}
+
+@media (max-width: 900px) {
+  .md-file {
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 900px) {
+  .md-memory__toggle {
+    min-height: 40px;
+  }
+}
+
+/* Chat delete: the row turns into an inline confirmation. */
+.md-session--confirm {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--md-sp-2);
+  padding: var(--md-sp-3);
+  border-color: var(--md-bad-line);
+  background: var(--md-bad-soft);
+}
+
+.md-session__ask {
+  font-size: var(--md-fs-base);
+  line-height: var(--md-lh-base);
+  color: var(--md-text);
+  overflow-wrap: anywhere;
+}
+
+.md-session__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--md-sp-2);
+}
+
+.md-btn--danger {
+  background: #c42b3a;
+  color: var(--md-on-accent);
+}
+
+.md-btn--danger:hover:not(:disabled) {
+  background: #d33746;
+}
+
+/* ---------- Nova: the desk guide ---------- */
+
+/* The orb: Nova's face. A slow-turning gradient that changes with her mood. */
+.md-orb {
+  position: relative;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #0866ff, #4da3ff, #8b5cf6, #22d3ee, #0866ff);
+  box-shadow: 0 0 18px rgba(77, 163, 255, 0.35);
+  animation: md-orb-spin 9s linear infinite, md-orb-breathe 4s ease-in-out infinite;
+}
+
+.md-orb::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 38%),
+    radial-gradient(circle at 50% 60%, rgba(8, 102, 255, 0.55), rgba(8, 20, 60, 0.9) 75%);
+}
+
+.md-orb--sm {
+  width: 28px;
+  height: 28px;
+}
+
+.md-nova[data-mood="joy"] .md-orb {
+  animation: md-orb-spin 5s linear infinite, md-orb-hop 0.7s ease-out 1;
+  box-shadow: 0 0 24px rgba(77, 163, 255, 0.6);
+}
+
+.md-nova[data-mood="think"] .md-orb,
+.md-nova[data-busy] .md-orb {
+  animation: md-orb-spin 1.6s linear infinite, md-orb-breathe 1.2s ease-in-out infinite;
+}
+
+.md-nova[data-mood="sorry"] .md-orb {
+  filter: saturate(0.45) brightness(0.85);
+  animation: md-orb-spin 14s linear infinite;
+}
+
+@keyframes md-orb-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes md-orb-breathe {
+  50% {
+    scale: 1.06;
+  }
+}
+
+@keyframes md-orb-hop {
+  40% {
+    translate: 0 -5px;
+  }
+}
+
+.md-nova {
+  position: relative;
+}
+
+.md-nova__btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 var(--md-sp-4) 0 10px;
+  border: 1px solid var(--md-border);
+  border-radius: 999px;
+  background: var(--md-surface);
+  color: var(--md-text);
+  font-size: 1rem;
+  font-weight: var(--md-fw-medium);
+  cursor: pointer;
+  transition: background var(--md-dur-fast) var(--md-ease), border-color var(--md-dur-fast) var(--md-ease);
+}
+
+.md-nova__btn:hover,
+.md-nova__btn--on {
+  background: var(--md-raised);
+  border-color: var(--md-accent-line);
+}
+
+/* The panel floats beside the sidebar, so it never covers the chat composer. */
+.md-nova__panel {
+  position: fixed;
+  left: 284px;
+  bottom: 24px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  width: min(400px, calc(100vw - 300px));
+  /* A fixed ceiling: the log scrolls inside instead of the panel growing. */
+  max-height: min(480px, calc(100dvh - 48px));
+  border: 1px solid var(--md-border);
+  border-radius: 28px;
+  background: var(--md-overlay);
+  box-shadow: var(--md-shadow-lg);
+  overflow: hidden;
+  animation: md-nova-in 180ms var(--md-ease);
+}
+
+@keyframes md-nova-in {
+  from {
+    opacity: 0;
+    translate: -8px 8px;
+  }
+}
+
+.md-nova__head {
+  display: flex;
+  align-items: center;
+  gap: var(--md-sp-3);
+  padding: var(--md-sp-4) var(--md-sp-3) var(--md-sp-3) var(--md-sp-5);
+  border-bottom: 1px solid var(--md-border-subtle);
+}
+
+.md-nova__who {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  min-width: 0;
+}
+
+.md-nova__who strong {
+  font-size: var(--md-fs-lg);
+  font-weight: var(--md-fw-semibold);
+}
+
+.md-nova__who span {
+  color: var(--md-text-2);
+  font-size: var(--md-fs-sm);
+}
+
+.md-nova__log {
+  flex: 1;
+  min-height: 120px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sp-2);
+  padding: var(--md-sp-4) var(--md-sp-5);
+}
+
+.md-nova__line {
+  margin: 0;
+  max-width: 88%;
+  padding: var(--md-sp-3) var(--md-sp-4);
+  border-radius: 20px;
+  font-size: var(--md-fs-md);
+  line-height: var(--md-lh-base);
+  overflow-wrap: anywhere;
+}
+
+.md-nova__line--nova {
+  align-self: flex-start;
+  background: var(--md-surface);
+  border-bottom-left-radius: 6px;
+}
+
+.md-nova__line--you {
+  align-self: flex-end;
+  background: rgba(8, 102, 255, 0.2);
+  border-bottom-right-radius: 6px;
+}
+
+.md-nova__dots {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.md-nova__dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--md-text-2);
+  animation: md-dot 1s ease-in-out infinite;
+}
+
+.md-nova__dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.md-nova__dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes md-dot {
+  50% {
+    opacity: 0.3;
+    translate: 0 -2px;
+  }
+}
+
+.md-nova__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--md-sp-2);
+  padding: 0 var(--md-sp-5) var(--md-sp-3);
+}
+
+.md-nova__chip {
+  min-height: 36px;
+  padding: 0 var(--md-sp-4);
+  border: 1px solid var(--md-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--md-text);
+  font-size: var(--md-fs-base);
+  cursor: pointer;
+}
+
+.md-nova__chip:hover:not(:disabled) {
+  border-color: var(--md-accent-line);
+  background: var(--md-accent-soft);
+}
+
+.md-nova__tour {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--md-sp-3);
+  padding: 0 var(--md-sp-5) var(--md-sp-3);
+  color: var(--md-text-2);
+  font-size: var(--md-fs-sm);
+}
+
+.md-nova__tour div {
+  display: flex;
+  gap: var(--md-sp-2);
+}
+
+.md-nova__form {
+  display: flex;
+  gap: var(--md-sp-2);
+  padding: var(--md-sp-3) var(--md-sp-4) var(--md-sp-4);
+  border-top: 1px solid var(--md-border-subtle);
+}
+
+.md-nova__form .md-input {
+  border-radius: 999px;
+}
+
+.md-nova__send {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--md-accent);
+  color: var(--md-on-accent);
+  cursor: pointer;
+}
+
+.md-nova__send:disabled {
+  background: var(--md-raised);
+  color: var(--md-text-3);
+  cursor: default;
+}
+
+/* Whatever Nova points at gets a pulsing blue ring for a few seconds. */
+.md-guide-spot {
+  position: relative;
+  z-index: 5;
+  border-radius: 20px;
+  animation: md-spot 1.2s ease-out 3;
+  outline: 2px solid var(--md-accent);
+  outline-offset: 4px;
+}
+
+@keyframes md-spot {
+  0% {
+    box-shadow: 0 0 0 0 rgba(8, 102, 255, 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 18px rgba(8, 102, 255, 0);
+  }
+}
+
+@media (max-width: 900px) {
+  /* Narrow screens: Nova is an orb in the header, and her panel is a sheet. */
+  .md-side {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      "top nova user"
+      "nav nav nav";
+  }
+
+  .md-side .md-nova {
+    grid-area: nova;
+  }
+
+  .md-nova__btn {
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  .md-nova__label {
+    display: none;
+  }
+
+  .md-nova__panel {
+    left: 12px;
+    right: 12px;
+    top: 64px;
+    bottom: auto;
+    width: auto;
+    max-height: calc(100dvh - 80px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .md-orb,
+  .md-guide-spot {
+    animation: none;
+  }
+}
+
+/* Library: one shelf at a time, at a readable width. */
+.md-library-shelf {
+  max-width: 920px;
+}
+
+.md-library-shelf > .md-card {
+  min-height: 0;
+}
+
+/* Nova steps back when you are not using her: half transparent until the cursor is
+   over the panel or focus is inside it (typing keeps her fully visible). */
+.md-nova__panel {
+  opacity: 0.5;
+  transition: opacity 160ms var(--md-ease);
+}
+
+.md-nova__panel:hover,
+.md-nova__panel:focus-within {
+  opacity: 1;
+}
+
+.md-nova__log {
+  min-height: 0;
+}
+
+@media (max-width: 900px) {
+  .md-nova__panel {
+    max-height: min(480px, calc(100dvh - 80px));
+  }
+}
+
+/* Touch screens have no hover, so the panel stays opaque there. */
+@media (hover: none) {
+  .md-nova__panel {
+    opacity: 1;
+  }
+}
+
+/* Add a Jetson: USB flow */
+.md-addjetson__go {
+  align-self: flex-start;
+  margin-top: var(--md-sp-1);
+}
+
+.md-addjetson__wait {
+  display: flex;
+  align-items: center;
+  gap: var(--md-sp-3);
+  padding: var(--md-sp-3) var(--md-sp-4);
+  border-radius: 16px;
+  background: var(--md-accent-soft);
+  color: var(--md-accent-text);
+  font-size: var(--md-fs-md);
+}
+
+.md-addjetson__spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--md-accent-line);
+  border-top-color: var(--md-accent-text);
+  animation: md-orb-spin 0.8s linear infinite;
+}
+
+.md-addjetson__link {
+  font-size: var(--md-fs-base);
+  color: var(--md-text-2);
+}
+
+.md-addjetson__link a {
+  color: var(--md-accent-text);
+  text-decoration: underline;
+}
+
+.md-addjetson__fallback {
+  border-top: 1px solid var(--md-border-subtle);
+  padding-top: var(--md-sp-4);
+}
+
+.md-addjetson__fallback summary {
+  cursor: pointer;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  color: var(--md-text-2);
+  font-size: var(--md-fs-md);
+}
+
+.md-addjetson__fallback summary:hover {
+  color: var(--md-text);
+}
+
+.md-addjetson__fallback[open] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sp-3);
+}
+
+.md-addjetson__fallback p {
+  margin: 0;
+}
+
+/* Pair a new board (Fleet) */
+.md-addjetson__setup {
+  align-self: stretch;
+  height: 48px;
+  gap: var(--md-sp-2);
+}
+
+.md-addjetson__note {
+  margin: 0;
+  color: var(--md-text-2);
+  font-size: var(--md-fs-base);
+  line-height: var(--md-lh-base);
+}
+
+.md-addjetson__or {
+  display: flex;
+  align-items: center;
+  gap: var(--md-sp-3);
+  color: var(--md-text-3);
+  font-size: var(--md-fs-sm);
+}
+
+.md-addjetson__or::before,
+.md-addjetson__or::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--md-border-subtle);
+}
+
+/* Session rename: a pencil next to delete, and an inline field in the row or header. */
+.md-session__edit {
+  margin-right: -6px;
+}
+
+.md-session__edit:hover {
+  color: var(--md-text);
+}
+
+.md-session__body--edit {
+  flex: 1;
+  min-width: 0;
+  padding: var(--md-sp-1) 0;
+}
+
+.md-session__rename {
+  min-height: 38px;
+  padding: 0 var(--md-sp-3);
+  border-radius: 12px;
+  font-size: var(--md-fs-md);
+}
+
+.md-chat__titlewrap {
+  display: flex;
+  align-items: center;
+  gap: var(--md-sp-2);
+}
+
+.md-chat__titleedit {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--md-text-3);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity var(--md-dur-fast) var(--md-ease), background var(--md-dur-fast) var(--md-ease);
+}
+
+.md-chat__titleedit:hover,
+.md-chat__titleedit:focus-visible {
+  opacity: 1;
+  background: var(--md-raised);
+  color: var(--md-text);
+}
+
+.md-chat__rename {
+  min-height: 40px;
+  margin-top: var(--md-sp-1);
+  max-width: 420px;
+  font-size: var(--md-fs-lg);
+  font-weight: var(--md-fw-semibold);
+}
+
+/* Session rail: search, sort, pin and drag to rearrange. */
+.md-chat__aside .md-session {
+  gap: var(--md-sp-1);
+}
+
+/* The list scrolls; rows keep their full height instead of shrinking to fit,
+   or a taller row (the delete confirmation) spills over its neighbour. */
+.md-chat__list > * {
+  flex-shrink: 0;
+}
+
+.md-chat__tools {
+  display: flex;
+  gap: var(--md-sp-2);
+}
+
+.md-chat__tools .md-input {
+  min-height: 36px;
+  padding: 0 var(--md-sp-3);
+  border-radius: 12px;
+  font-size: var(--md-fs-base);
+}
+
+.md-chat__find {
+  flex: 1;
+  min-width: 0;
+}
+
+.md-chat__sort {
+  flex: none;
+  width: auto;
+  max-width: 46%;
+  cursor: pointer;
+}
+
+.md-chat__sort option {
+  background: var(--md-surface);
+  color: var(--md-text);
+}
+
+.md-chat__group {
+  padding: var(--md-sp-2) var(--md-sp-2) 2px;
+  font-size: var(--md-fs-xs);
+  font-weight: var(--md-fw-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--md-text-3);
+}
+
+.md-linkbtn {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--md-accent-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.md-linkbtn:hover {
+  text-decoration: underline;
+}
+
+.md-session__grip {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 28px;
+  margin-left: -4px;
+  padding: 0;
+  border: none;
+  border-radius: var(--md-r-sm);
+  background: transparent;
+  color: var(--md-text-3);
+  cursor: grab;
+  opacity: 0;
+  transition: opacity var(--md-dur-fast) var(--md-ease), color var(--md-dur-fast) var(--md-ease);
+}
+
+.md-session:hover .md-session__grip,
+.md-session__grip:focus-visible {
+  opacity: 1;
+}
+
+.md-session__grip:hover {
+  color: var(--md-text);
+}
+
+.md-session__tool:hover {
+  color: var(--md-text);
+}
+
+/* A pinned session shows its pin all the time. */
+.md-session__tool--on {
+  opacity: 1;
+  color: var(--md-accent-text);
+}
+
+.md-session--dragging {
+  opacity: 0.45;
+}
+
+.md-session--drop-before {
+  box-shadow: inset 0 2px 0 var(--md-accent);
+}
+
+.md-session--drop-after {
+  box-shadow: inset 0 -2px 0 var(--md-accent);
+}
+
+.md-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 900px) {
+  .md-session__grip {
+    opacity: 1;
+    width: 28px;
+    height: 40px;
+  }
+}
+
+/* Thread header: the title takes the room and stays on one line; the hint
+   gives way first on narrower desks. */
+.md-thread__head > div:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.md-thread__head .md-chat__titlewrap {
+  min-width: 0;
+}
+
+.md-chat__titletext {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.md-thread__sub {
+  flex: 0 1 18rem;
+}
+
+@media (max-width: 1280px) {
+  .md-thread__sub {
+    display: none;
+  }
+}
+
+/* Example prompts in an empty thread fill the composer when clicked. */
+.md-example {
+  padding: 1px 8px;
+  border: 1px solid var(--md-border);
+  border-radius: 8px;
+  background: var(--md-inset);
+  color: var(--md-text);
+  font-family: var(--md-mono);
+  font-size: 0.92em;
+  cursor: pointer;
+  transition: border-color var(--md-dur-fast) var(--md-ease), background var(--md-dur-fast) var(--md-ease);
+}
+
+.md-example:hover {
+  border-color: var(--md-accent-line);
+  background: var(--md-raised);
+}
+
+.md-note:empty {
+  display: none;
+}
+
+.md-cmds__item--on {
+  background: var(--md-raised);
+}
+
+/* Why a turn ran somewhere other than the tier the operator picked. */
+.md-turn__note {
+  margin: 0;
+  font-size: var(--md-fs-sm);
+  color: var(--md-text-2);
+}
+
+/* Files: a clickable folder path, refresh, and the open file marked in the list. */
+.md-files__trail {
+  flex-wrap: wrap;
+  gap: 2px;
+  min-width: 0;
+}
+
+.md-files__step {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.md-files__crumb {
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--md-accent-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.md-files__crumb:hover {
+  background: var(--md-surface);
+}
+
+.md-files__step [aria-current] {
+  padding: 2px 6px;
+  color: var(--md-text);
+}
+
+.md-files__actions {
+  display: flex;
+  flex: none;
+  gap: var(--md-sp-2);
+}
+
+.md-file--on {
+  border-color: var(--md-accent-line);
+  background: var(--md-accent-soft);
+}
+
+/* Secrets: removing one asks first, because the value cannot come back. */
+.md-vault__confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--md-sp-2);
+}
+
+/* Memory: the opened file shows in full. */
+.md-memory__file {
+  margin: 0;
+  max-height: 320px;
+  overflow: auto;
+}
+
+/* Phones: the five views share the row (icon over label) instead of two of
+   them hiding past the edge. */
+@media (max-width: 600px) {
+  .md-side__nav {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    overflow: visible;
+  }
+
+  .md-nav {
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    min-height: 54px;
+    padding: 6px 0;
+    border-radius: 14px;
+    font-size: 0.72rem;
+  }
+}
+
+/* On the tour Nova only needs the current step, so the panel shrinks and
+   hides less of what she is pointing at. */
+.md-nova__panel[data-tour] {
+  max-height: min(300px, calc(100dvh - 48px));
+}
+
+.md-nova__panel[data-tour] .md-nova__log {
+  max-height: 150px;
+}

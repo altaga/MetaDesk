@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="MetaDesk">
+  <rect x="16" y="16" width="480" height="480" rx="124" fill="#0866FF"/>
+  <path d="M130 352 V170 L256 306 L382 170 V352" fill="none" stroke="#FFFFFF" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M410 80 L423 118 L461 131 L423 144 L410 182 L397 144 L359 131 L397 118 Z" fill="#FFFFFF"/>
+</svg>

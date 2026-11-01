@@ -1,0 +1,53 @@
+# Emulated MetaDesk boards for onboarding and multi-board demos.
+#
+#   cd apps/board-emu
+#   docker compose up -d --build emu-1
+#
+# Then in the desk (production or local): Fleet → Set up a board. The wizard finds
+# the board on http://127.0.0.1:18101 — a loopback address, which browsers allow even
+# from the HTTPS desk — and enrolls it. Ports are published on 127.0.0.1 only.
+#
+# Each board is cloud-only (no local model) and keeps its own identity and data in
+# a named volume, so it stays paired across restarts. `docker compose down -v`
+# forgets them.
+
+x-board: &board
+  build:
+    context: ..
+    dockerfile: board-emu/Dockerfile
+  image: metadesk-board-emu:local
+  restart: unless-stopped
+  environment: &board-env
+    METADESK_CLOUD_URL: ${METADESK_CLOUD_URL:?set METADESK_CLOUD_URL to your Worker}
+    CLOUD_URL: ${METADESK_CLOUD_URL:?set METADESK_CLOUD_URL to your Worker}
+    METADESK_SETUP_ORIGINS: "https://metadesk-khaki.vercel.app,http://localhost:3000,http://127.0.0.1:3000"
+
+services:
+  emu-1:
+    <<: *board
+    hostname: emu-1
+    ports:
+      - "127.0.0.1:18101:8800"
+    volumes:
+      - emu-1:/home/jetson
+
+  emu-2:
+    <<: *board
+    hostname: emu-2
+    ports:
+      - "127.0.0.1:18102:8800"
+    volumes:
+      - emu-2:/home/jetson
+
+  emu-3:
+    <<: *board
+    hostname: emu-3
+    ports:
+      - "127.0.0.1:18103:8800"
+    volumes:
+      - emu-3:/home/jetson
+
+volumes:
+  emu-1:
+  emu-2:
+  emu-3:

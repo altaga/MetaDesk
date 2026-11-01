@@ -1,0 +1,15 @@
+node_modules/
+.next/
+out/
+build/
+
+# Local environment. Keep .env.example tracked.
+.env
+.env.local
+.env.*.local
+!.env.example
+
+next-env.d.ts
+*.tsbuildinfo
+.vercel/
+.turbo/

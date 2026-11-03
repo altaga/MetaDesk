@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import type { ChatMessage, Session, Tier, ToolEvent, TurnEvent } from "@/shared/types";
 
-export type ToolRun = ToolEvent & { key: string };
+export type ToolRun = ToolEvent & { key: string; deciding?: boolean };
 
 export type Turn = {
   id: string;
@@ -299,6 +299,25 @@ export function useChatSession() {
     abortRef.current?.abort();
   }, []);
 
+  /** Approve or deny a proposed file change; the card then shows what happened. */
+  const decideTool = useCallback(async (turnId: string, key: string, approvalId: string, approve: boolean) => {
+    const replace = (patch: Partial<ToolRun>) =>
+      setTurns((prev) =>
+        prev.map((turn) =>
+          turn.id !== turnId
+            ? turn
+            : { ...turn, tools: turn.tools.map((run) => (run.key === key ? { ...run, ...patch } : run)) },
+        ),
+      );
+    replace({ deciding: true });
+    try {
+      const res = await api.decideApproval(approvalId, approve);
+      replace({ ...res.result, deciding: false });
+    } catch (err) {
+      replace({ deciding: false, status: "error", reason: readError(err) });
+    }
+  }, []);
+
   return {
     sessions,
     activeId,
@@ -307,6 +326,7 @@ export function useChatSession() {
     error,
     send,
     cancel,
+    decideTool,
     openSession,
     newSession,
     removeSession,

@@ -63,8 +63,11 @@ class Agent:
         async with websockets.connect(
             settings.ws_url,
             additional_headers=headers,
+            # A board on Wi-Fi sees uplink stalls of several seconds; with a short
+            # pong deadline the link was cut mid-response and the reply was lost.
             ping_interval=20,
-            ping_timeout=20,
+            ping_timeout=60,
+            open_timeout=30,
             max_size=None,
         ) as ws:
             self._ws = ws

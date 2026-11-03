@@ -30,8 +30,22 @@ SYSTEM_PROMPT = (
     "line kind, then the fields that kind needs, for example\n"
     "```job\nkind: research\ntopic: edge agents on Jetson\n```\n"
     "After enqueueing a job, tell the operator it is running in the background and "
-    "will post its result in chat — never claim the job already finished."
+    "will post its result in chat — never claim the job already finished. "
+    "When you read, list or run something, the board sends you the result and you "
+    "continue from it. To change a file, read it first, say in one sentence what "
+    "you will change and why, then emit one fenced block tagged patch: the relative "
+    "path on the first line, then\n"
+    "<<<<<<< SEARCH\n(exact current lines, copied from the file)\n=======\n"
+    "(the replacement lines)\n>>>>>>> REPLACE\n"
+    "Keep SEARCH short and unique. A patch is not applied until the operator "
+    "approves it, so never claim it is already fixed; tell them to approve and "
+    "then refresh the preview."
 )
+
+#: How many times one turn may hand tool results back to the model.
+MAX_TOOL_ROUNDS = 3
+#: Characters of tool output fed back per round, so a big file cannot flood the prompt.
+TOOL_FEEDBACK_CAP = 12_000
 
 #: Added on a session's first turn so the same call also names the session.
 TITLE_PROMPT = (
@@ -167,6 +181,39 @@ def build_messages(
     return messages
 
 
+#: Tools whose output the model reads back in the next round.
+FEEDBACK_TOOLS = ("read", "list", "run")
+
+
+def tool_feedback(events: Sequence[dict[str, Any]]) -> str:
+    """The board's report of what the requested tools returned, for the next round."""
+
+    parts: list[str] = []
+    for event in events:
+        name = event.get("name")
+        if event.get("status") != "ok":
+            target = event.get("path") or event.get("command") or ""
+            parts.append(f"{name} {target}: failed ({event.get('reason') or 'error'})")
+        elif name == "read":
+            more = "\n(truncated)" if event.get("truncated") else ""
+            parts.append(f"read {event.get('path')}:\n```\n{event.get('content', '')}\n```{more}")
+        elif name == "list":
+            names = [f"{e['name']}/" if e.get("type") == "dir" else e["name"] for e in event.get("entries") or []]
+            parts.append(f"list {event.get('path')}:\n" + "\n".join(names))
+        elif name == "run":
+            parts.append(
+                f"run {event.get('command')} (exit {event.get('exit_code')}):\n```\n{event.get('output', '')}\n```"
+            )
+    body = "\n\n".join(parts)
+    if len(body) > TOOL_FEEDBACK_CAP:
+        body = body[:TOOL_FEEDBACK_CAP] + "\n… (cut)"
+    return (
+        "Board tool results:\n\n"
+        f"{body}\n\n"
+        "Continue from these results. If a file needs a change, propose it with one patch block."
+    )
+
+
 async def _stream_tokens(tier: str, model: str, messages: Sequence[dict]) -> AsyncIterator[str]:
     if tier == "local":
         async for chunk in local_llm.stream_chat(messages, model):
@@ -265,34 +312,45 @@ async def stream_turn(
     messages = build_messages(history, text, context, want_title=want_title)
     assistant_text = ""
     failed = False
+    tokens_in = 0
     titles = TitleFilter() if want_title else None
-    try:
-        async for chunk in _stream_tokens(decision.tier, decision.model, messages):
+    # Each round is one model call. Reads, listings and shell output go back to the
+    # model so it can act on them (read a file, then propose a patch); a proposed
+    # patch, a round with nothing to feed back, or the round cap ends the turn.
+    for round_index in range(MAX_TOOL_ROUNDS + 1):
+        round_text = ""
+        tokens_in += estimate_tokens([message["content"] for message in messages])
+        try:
+            async for chunk in _stream_tokens(decision.tier, decision.model, messages):
+                if titles is not None:
+                    had_title = titles.title is not None
+                    chunk = titles.feed(chunk)
+                    if titles.title and not had_title:
+                        yield ("title", {"title": titles.title})
+                if chunk:
+                    round_text += chunk
+                    yield ("token", {"text": chunk})
             if titles is not None:
-                had_title = titles.title is not None
-                chunk = titles.feed(chunk)
-                if titles.title and not had_title:
-                    yield ("title", {"title": titles.title})
-            if chunk:
-                assistant_text += chunk
-                yield ("token", {"text": chunk})
-        if titles is not None and (rest := titles.flush()):
-            assistant_text += rest
-            yield ("token", {"text": rest})
-    except Exception as exc:  # noqa: BLE001 - degrade gracefully, never crash the stream
-        failed = True
-        if decision.tier == "local":
-            notice = LOCAL_OFFLINE_MESSAGE
-        elif isinstance(exc, meta.CloudCreditSpent):
-            notice = CLOUD_CREDIT_MESSAGE
-        else:
-            notice = CLOUD_UNREACHABLE_MESSAGE
-        assistant_text += notice
-        yield ("token", {"text": notice})
+                if rest := titles.flush():
+                    round_text += rest
+                    yield ("token", {"text": rest})
+                titles = None
+        except Exception as exc:  # noqa: BLE001 - degrade gracefully, never crash the stream
+            failed = True
+            if decision.tier == "local":
+                notice = LOCAL_OFFLINE_MESSAGE
+            elif isinstance(exc, meta.CloudCreditSpent):
+                notice = CLOUD_CREDIT_MESSAGE
+            else:
+                notice = CLOUD_UNREACHABLE_MESSAGE
+            round_text += notice
+            yield ("token", {"text": notice})
+        assistant_text += round_text
+        if failed or not allow_tools:
+            break
 
-    if not failed and allow_tools:
         tool_events: list[dict[str, Any]] = []
-        for kind, argument in desk_tools.fenced_calls(assistant_text):
+        for kind, argument in desk_tools.fenced_calls(round_text):
             if kind == "search":
                 tool_events.append(await desk_tools.run_search(argument))
             elif kind == "job":
@@ -301,7 +359,11 @@ async def stream_turn(
                 tool_events.append(desk_tools.execute(kind, argument))
 
         # A clear "search the web" request runs even when the model stayed quiet.
-        if not any(event.get("name") == "search" for event in tool_events) and desk_tools.wants_web_search(text):
+        if (
+            round_index == 0
+            and not any(event.get("name") == "search" for event in tool_events)
+            and desk_tools.wants_web_search(text)
+        ):
             tool_events.append(await desk_tools.run_search(desk_tools.web_query_from(text)))
 
         for tool_event in tool_events:
@@ -313,7 +375,18 @@ async def stream_turn(
                 results=[_ops_item(event) for event in tool_events],
             )
 
-    tokens_in = estimate_tokens([message["content"] for message in messages])
+        feedback = [event for event in tool_events if event.get("name") in FEEDBACK_TOOLS]
+        proposed = any(event.get("name") == "patch" for event in tool_events)
+        if not feedback or proposed or round_index == MAX_TOOL_ROUNDS:
+            break
+        messages = [
+            *messages,
+            {"role": "assistant", "content": round_text},
+            {"role": "user", "content": tool_feedback(feedback)},
+        ]
+        assistant_text += "\n\n"
+        yield ("token", {"text": "\n\n"})
+
     tokens_out = estimate_tokens([assistant_text])
     cost_usd = compute_cost_usd(decision.tier, tokens_in, tokens_out)
 

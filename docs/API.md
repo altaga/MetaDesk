@@ -56,7 +56,8 @@ These are the endpoints exposed by `apps/api` and reached by the web through the
 | `GET` | `/v1/chat/sessions/{id}/messages` | Session transcript |
 | `PATCH` | `/v1/chat/sessions/{id}` | Rename and/or pin a session (`{title?, pinned?}`; title 1–120 chars) |
 | `DELETE` | `/v1/chat/sessions/{id}` | Delete a session |
-| `POST` | `/v1/chat/message/stream` | SSE turn: `route` → `token*` (`title` once, first turn only) → `tool*` → `done` |
+| `POST` | `/v1/chat/message/stream` | SSE turn: `route` → `token*` (`title` once, first turn only) → `tool*` → `done`; up to 3 tool rounds |
+| `POST` | `/v1/chat/approvals/{id}` | Approve or deny a proposed file change (`{approve}`); returns the final `patch` tool event |
 | `GET` | `/v1/edge/files` | List a directory under the desk root |
 | `GET` | `/v1/edge/files/read` | Read a file (capped) |
 
@@ -71,8 +72,15 @@ Everything under `/v1/` requires a Bearer JWT; `/health` and `/v1/auth/login` ar
 | `route` | `{"tier": "local|fast|heavy|ultra", "reason": "…", "model": "…"}` |
 | `token` | `{"text": "…"}` |
 | `title` | `{"title": "…"}` — first turn of an untitled session only. The answering model writes it in a hidden `title` block of the same call (no extra model call); the message's first words stand in when it does not. A custom title is never replaced. |
-| `tool` | `{"name": "run|read|list", "status": "ok|blocked", "reason"?: "…"}` |
+| `tool` | `{"name": "run|read|list|patch|search|job", "status": "ok|blocked|error|pending|denied", "reason"?: "…"}`; a `patch` is `pending` with `approval_id`, `path`, `old`, `new` |
 | `done` | `{"tokens_in": n, "tokens_out": n, "cost_usd": f, "tier": "…", "model": "…"}` |
+
+A turn can take up to three tool rounds: `read`, `list` and `run` output goes back to the
+model, which can then act on it. A `patch` fence (relative path, then one
+`<<<<<<< SEARCH` / `=======` / `>>>>>>> REPLACE` block) never writes: it ends the turn
+with a `pending` tool event, and only `POST /v1/chat/approvals/{id}` with
+`{"approve": true}` writes the file — after re-checking that the SEARCH text is still
+there exactly once. Pending changes live in board memory for 30 minutes.
 
 If the client disconnects mid-turn (the operator pressed Stop), the board still saves
 the reply: whatever text arrived, followed by `(stopped)` on its own line, or just

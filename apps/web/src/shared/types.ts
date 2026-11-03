@@ -75,8 +75,13 @@ export type ToolEntry = { name: string; type: "dir" | "file"; size: number };
 export type SearchResult = { title: string; url: string; content: string };
 
 export type ToolEvent = {
-  name: "list" | "read" | "run" | "search" | "job" | string;
-  status: "ok" | "error" | "blocked";
+  name: "list" | "read" | "run" | "patch" | "search" | "job" | string;
+  /** `pending`: a patch waiting for the operator; `denied`: one they turned down. */
+  status: "ok" | "error" | "blocked" | "pending" | "denied";
+  /** patch: the id to approve or deny, and the exact text it replaces. */
+  approval_id?: string;
+  old?: string;
+  new?: string;
   reason?: string;
   detail?: string;
   path?: string;

@@ -13,6 +13,12 @@ class SessionCreate(BaseModel):
     title: str | None = Field(default=None, max_length=200)
 
 
+class ApprovalDecision(BaseModel):
+    """The operator's answer to a proposed file change."""
+
+    approve: bool
+
+
 class SessionUpdate(BaseModel):
     """Any of a session's own settings; fields left out stay as they are."""
 

@@ -35,6 +35,50 @@ function price(usd?: number | null): string {
   return `$${usd.toFixed(5)}`;
 }
 
+const PATCH_STATUS: Record<string, string> = {
+  pending: "Waiting for your approval",
+  ok: "Applied",
+  denied: "Denied — nothing was changed",
+};
+
+/** A proposed file change: the diff, and the only buttons that can write it. */
+function PatchCard({ run, onDecide }: { run: ToolRun; onDecide?: (approve: boolean) => void }) {
+  const lines = (text?: string) => (text ?? "").replace(/\n$/, "").split("\n");
+  const pending = run.status === "pending";
+  const state = run.status === "error" ? "md-tool--error" : pending ? "md-tool--blocked" : "";
+  return (
+    <div className={`md-tool md-patch ${state}`}>
+      <div className="md-tool__head">
+        <span>tool:patch</span>
+        <span>{PATCH_STATUS[run.status] ?? run.status}</span>
+        {run.reason ? <span>{run.reason}</span> : null}
+      </div>
+      {run.path ? <div className="md-patch__path">{run.path}</div> : null}
+      {run.old !== undefined || run.new !== undefined ? (
+        <pre className="md-patch__diff" aria-label={`Proposed change to ${run.path ?? "a file"}`}>
+          {lines(run.old).map((line, index) => (
+            <span key={`o${index}`} className="md-patch__del">{`- ${line}`}</span>
+          ))}
+          {lines(run.new).map((line, index) => (
+            <span key={`n${index}`} className="md-patch__add">{`+ ${line}`}</span>
+          ))}
+        </pre>
+      ) : null}
+      {pending && run.approval_id && onDecide ? (
+        <div className="md-patch__actions">
+          <span className="md-patch__note">Nothing is written until you approve.</span>
+          <button type="button" className="md-btn md-btn--sm md-btn--ghost" disabled={run.deciding} onClick={() => onDecide(false)}>
+            Deny
+          </button>
+          <button type="button" className="md-btn md-btn--sm md-btn--primary" disabled={run.deciding} onClick={() => onDecide(true)}>
+            {run.deciding ? "Applying…" : "Approve"}
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function ToolCard({ run }: { run: ToolRun }) {
   const state = run.status === "ok" ? "" : run.status === "blocked" ? "md-tool--blocked" : "md-tool--error";
   let body: ReactNode = "";
@@ -80,7 +124,13 @@ function ToolCard({ run }: { run: ToolRun }) {
   );
 }
 
-function TurnBlock({ turn }: { turn: Turn }) {
+function TurnBlock({
+  turn,
+  onDecide,
+}: {
+  turn: Turn;
+  onDecide?: (key: string, approvalId: string, approve: boolean) => void;
+}) {
   const isUser = turn.role === "user";
   const label = isUser ? "You" : turn.model || "MetaDesk";
   return (
@@ -94,9 +144,17 @@ function TurnBlock({ turn }: { turn: Turn }) {
         {turn.text ? <RichText text={turn.text} /> : turn.streaming ? "…" : turn.stopped ? "Stopped before any reply." : ""}
       </div>
 
-      {turn.tools.map((run) => (
-        <ToolCard key={run.key} run={run} />
-      ))}
+      {turn.tools.map((run) =>
+        run.name === "patch" ? (
+          <PatchCard
+            key={run.key}
+            run={run}
+            onDecide={onDecide && run.approval_id ? (approve) => onDecide(run.key, run.approval_id!, approve) : undefined}
+          />
+        ) : (
+          <ToolCard key={run.key} run={run} />
+        ),
+      )}
 
       {!isUser && (turn.model || turn.tokensOut || turn.stopped || turn.costUsd !== null && turn.costUsd !== undefined) ? (
         <div className="md-turn__meta">
@@ -311,7 +369,13 @@ export function ChatView() {
               </p>
             </div>
           ) : (
-            chat.turns.map((turn) => <TurnBlock key={turn.id} turn={turn} />)
+            chat.turns.map((turn) => (
+              <TurnBlock
+                key={turn.id}
+                turn={turn}
+                onDecide={(key, approvalId, approve) => void chat.decideTool(turn.id, key, approvalId, approve)}
+              />
+            ))
           )}
         </div>
 

@@ -88,9 +88,10 @@ export function BrowserView() {
       setStatus(next);
       setError(null);
       if (next.url) setLiveUrl(next.url);
-      // Show the last capture on arrival, but never replace a live frame with it:
-      // a selected capture is a still image that ignores Live input.
-      if (next.last_shot && !frameRef.current) setSelected((prev) => prev ?? next.last_shot);
+      // With no page open, show the last capture. With one open, a fresh frame is
+      // taken on arrival instead (below): an old still could show a page as it
+      // was before a fix. Never replace a live frame with a capture either.
+      if (next.last_shot && !next.url && !frameRef.current) setSelected((prev) => prev ?? next.last_shot);
     } catch (err) {
       setError(err instanceof Error ? err.message : "The board browser is unavailable.");
     }
@@ -153,6 +154,16 @@ export function BrowserView() {
     },
     [],
   );
+
+  // Coming back to Preview with a page still open on the board: shoot it fresh
+  // once, so the stage shows the page as it is now.
+  const primed = useRef(false);
+  useEffect(() => {
+    if (primed.current || !liveUrl || frame) return;
+    primed.current = true;
+    void capture(liveUrl, viewport);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveUrl]);
 
   const open = useCallback(() => {
     const url = withScheme(target);

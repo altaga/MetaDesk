@@ -337,3 +337,86 @@ def test_gateway_stream_and_spent_credit(monkeypatch):
 
     status["code"] = 402
     assert asyncio.run(reply()) == hybrid.CLOUD_CREDIT_MESSAGE
+
+
+def test_patch_waits_for_approval_and_then_writes(client, auth_headers):
+    from app.chat import desk_tools
+    from app.config import desk_root_abs
+
+    target = desk_root_abs() / "demo" / "app.js"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("render();\nsaveItemz(load());\n", encoding="utf-8")
+
+    body = "demo/app.js\n<<<<<<< SEARCH\nsaveItemz(load());\n=======\nsaveItems(load());\n>>>>>>> REPLACE"
+    pending = desk_tools.execute("patch", body)
+    assert pending["status"] == "pending" and pending["old"] == "saveItemz(load());"
+    assert "saveItemz" in target.read_text(encoding="utf-8")  # nothing written yet
+
+    approved = client.post(
+        f"/v1/chat/approvals/{pending['approval_id']}", json={"approve": True}, headers=auth_headers
+    ).json()["result"]
+    assert approved["status"] == "ok"
+    assert target.read_text(encoding="utf-8") == "render();\nsaveItems(load());\n"
+
+    # A decided proposal is gone; deciding again is a 404.
+    again = client.post(f"/v1/chat/approvals/{pending['approval_id']}", json={"approve": True}, headers=auth_headers)
+    assert again.status_code == 404
+
+
+def test_patch_denied_or_stale_never_writes(client, auth_headers):
+    from app.chat import desk_tools
+    from app.config import desk_root_abs
+
+    target = desk_root_abs() / "demo" / "stale.js"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("a = 1;\n", encoding="utf-8")
+    body = "demo/stale.js\n<<<<<<< SEARCH\na = 1;\n=======\na = 2;\n>>>>>>> REPLACE"
+
+    denied = desk_tools.execute("patch", body)
+    result = client.post(f"/v1/chat/approvals/{denied['approval_id']}", json={"approve": False}, headers=auth_headers)
+    assert result.json()["result"]["status"] == "denied"
+    assert target.read_text(encoding="utf-8") == "a = 1;\n"
+
+    stale = desk_tools.execute("patch", body)
+    target.write_text("a = 3;\n", encoding="utf-8")  # someone edited the file meanwhile
+    result = client.post(f"/v1/chat/approvals/{stale['approval_id']}", json={"approve": True}, headers=auth_headers)
+    assert result.json()["result"]["reason"] == "file_changed"
+    assert target.read_text(encoding="utf-8") == "a = 3;\n"
+
+    assert desk_tools.execute("patch", "demo/stale.js\nno markers")["reason"] == "bad_patch_format"
+    escape = "../outside.js\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE"
+    assert desk_tools.execute("patch", escape)["reason"] == "path_out_of_root"
+
+
+def test_tool_results_go_back_to_the_model(monkeypatch):
+    import asyncio
+
+    from app.config import desk_root_abs
+    from app.router import hybrid
+
+    target = desk_root_abs() / "demo" / "loop.js"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("saveItemz(x);\n", encoding="utf-8")
+    calls: list[list[dict]] = []
+    replies = [
+        "Let me read it.\n```read\ndemo/loop.js\n```",
+        "The name is misspelled.\n```patch\ndemo/loop.js\n<<<<<<< SEARCH\nsaveItemz(x);\n=======\nsaveItems(x);\n>>>>>>> REPLACE\n```",
+        "should never be asked",
+    ]
+
+    async def fake_tokens(tier, model, messages):
+        calls.append(list(messages))
+        yield replies[len(calls) - 1]
+
+    monkeypatch.setattr(hybrid, "_stream_tokens", fake_tokens)
+    monkeypatch.setattr(hybrid, "record_usage", lambda *args: None)
+
+    async def turn():
+        return [item async for item in hybrid.stream_turn(text="Fix the app", tier_request="local")]
+
+    events = asyncio.run(turn())
+    tools = [payload for kind, payload in events if kind == "tool"]
+    assert [tool["name"] for tool in tools] == ["read", "patch"]
+    assert tools[1]["status"] == "pending"
+    assert len(calls) == 2  # the patch ends the turn; no third call
+    assert "saveItemz(x);" in calls[1][-1]["content"]  # the read result was fed back

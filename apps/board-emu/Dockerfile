@@ -21,6 +21,15 @@ COPY api/requirements.txt /opt/api/requirements.txt
 COPY board-agent/requirements.txt /opt/agent/requirements.txt
 RUN pip install -r /opt/api/requirements.txt -r /opt/agent/requirements.txt
 
+# The board browser (Machine → Preview): Playwright and its Chromium, installed
+# where the non-root operator can read them.
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
+COPY api/requirements-browser.txt /opt/api/requirements-browser.txt
+RUN pip install -r /opt/api/requirements-browser.txt \
+ && playwright install --with-deps chromium \
+ && chmod -R a+rX /opt/ms-playwright \
+ && rm -rf /var/lib/apt/lists/*
+
 COPY api/app /opt/api/app
 COPY board-agent/metadesk_agent /opt/agent/metadesk_agent
 COPY board-emu/entrypoint.sh /entrypoint.sh

@@ -29,3 +29,18 @@ relay.
   unpaired.
 - Point a board at another Worker with `METADESK_CLOUD_URL=…` (for example a local
   `wrangler dev` reached through `http://host.docker.internal:8787`).
+
+## Broken-app demo (agent repair with approval)
+
+Emulated boards ship Chromium, so Machine → Preview works on them. A small Todo app
+under `demo/todo-app/` can be installed on `emu-1` in a broken state:
+
+```bash
+./demo/hero.sh setup    # copy it to Projects/todo-app, serve it at http://127.0.0.1:5173 on the board
+./demo/hero.sh break    # reintroduce the bug before another take
+./demo/hero.sh status
+```
+
+Open `http://127.0.0.1:5173` in Preview to see the crash, then ask the chat to read
+`Projects/todo-app/app.js` and propose a fix. The change waits for Approve; refresh the
+preview afterwards. The server does not survive a container restart; run `setup` again.

@@ -1,9 +1,11 @@
 """Desk tools executed on the board after a model turn.
 
 The model requests an action with a fenced block tagged ``run``, ``read``,
-``list``, ``search`` or ``job``. Shell, read and list run once per turn inside
-the desk root sandbox; search reaches the web through the cloud gateway (or the
-board's own key); job enqueues a durable background agent that outlives the turn.
+``list``, ``patch``, ``search`` or ``job``. Shell, read and list run inside the
+desk root sandbox; patch only proposes a file change, which waits for the
+operator's approval (see ``approvals``); search reaches the web through the cloud
+gateway (or the board's own key); job enqueues a durable background agent that
+outlives the turn.
 """
 
 from __future__ import annotations
@@ -13,7 +15,7 @@ import subprocess
 from typing import Any
 
 from ..config import AppError, desk_root_abs, resolve_under_root
-from . import guardrails
+from . import approvals, guardrails
 
 LIST_CAP_BYTES = 256 * 1024
 READ_CAP_BYTES = 256 * 1024
@@ -21,7 +23,12 @@ RUN_CAP_BYTES = 64 * 1024
 RUN_TIMEOUT_SECONDS = 30
 SEARCH_RESULT_CAP = 5
 
-_FENCE = re.compile(r"```(run|read|list|search|job)[ \t]*\r?\n(.*?)```", re.DOTALL)
+_FENCE = re.compile(r"```(run|read|list|patch|search|job)[ \t]*\r?\n(.*?)```", re.DOTALL)
+#: A patch body: the file, then one SEARCH/REPLACE block.
+_PATCH = re.compile(
+    r"^(?:path:\s*)?(?P<path>[^\n]+?)\s*\n<{3,}\s*SEARCH[^\n]*\n(?P<old>.*?)\n?={3,}[^\n]*\n(?P<new>.*?)\n?>{3,}\s*REPLACE",
+    re.DOTALL | re.IGNORECASE,
+)
 
 #: The operator phrasing that should trigger a web search even without a fence.
 _WANTS_WEB = re.compile(
@@ -109,8 +116,18 @@ def _run_shell(command: str) -> dict[str, Any]:
     }
 
 
+def _propose_patch(body: str) -> dict[str, Any]:
+    """Park a SEARCH/REPLACE edit for approval; nothing is written here."""
+
+    match = _PATCH.search(body)
+    if not match:
+        return {"name": "patch", "status": "error", "reason": "bad_patch_format"}
+    path = match.group("path").strip().strip("`\"'")
+    return approvals.propose(path, match.group("old"), match.group("new"))
+
+
 def execute(kind: str, argument: str) -> dict[str, Any]:
-    """Execute one sandbox tool request (``list``, ``read`` or ``run``)."""
+    """Execute one sandbox tool request (``list``, ``read``, ``run`` or ``patch``)."""
 
     if kind == "list":
         return _run_list(argument)
@@ -118,6 +135,8 @@ def execute(kind: str, argument: str) -> dict[str, Any]:
         return _run_read(argument)
     if kind == "run":
         return _run_shell(argument)
+    if kind == "patch":
+        return _propose_patch(argument)
     return {"name": kind, "status": "error", "reason": "unknown_tool"}
 
 

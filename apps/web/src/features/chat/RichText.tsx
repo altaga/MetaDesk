@@ -16,6 +16,13 @@ export function RichText({ text }: { text: string }) {
     if (match.index > last) parts.push(<Inline key={key++} text={text.slice(last, match.index)} />);
     const lang = match[1];
     const code = match[2].replace(/\n$/, "");
+    // A patch shows as its own approval card with the diff; skip the raw block
+    // but keep a line break, so the sentences around it stay apart.
+    if (lang === "patch") {
+      parts.push(<br key={key++} />);
+      last = fence.lastIndex;
+      continue;
+    }
     parts.push(
       <pre key={key++} className="md-rich__code" data-lang={lang || undefined}>
         <code>{code}</code>

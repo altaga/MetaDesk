@@ -9,8 +9,8 @@ from fastapi.responses import StreamingResponse
 
 from ..auth.models import User
 from ..auth.service import get_current_user
-from . import service
-from .schemas import SessionCreate, SessionOrder, SessionUpdate, StreamMessageRequest
+from . import approvals, service
+from .schemas import ApprovalDecision, SessionCreate, SessionOrder, SessionUpdate, StreamMessageRequest
 
 router = APIRouter(prefix="/v1/chat", tags=["chat"], dependencies=[Depends(get_current_user)])
 
@@ -64,6 +64,13 @@ def delete_session(session_id: int) -> dict[str, Any]:
 
     service.delete_session(session_id)
     return {"ok": True, "deleted": session_id}
+
+
+@router.post("/approvals/{approval_id}")
+def decide_approval(approval_id: str, payload: ApprovalDecision) -> dict[str, Any]:
+    """Approve (write) or deny a file change the agent proposed with a ``patch`` fence."""
+
+    return {"ok": True, "result": approvals.decide(approval_id, payload.approve)}
 
 
 @router.post("/message/stream")

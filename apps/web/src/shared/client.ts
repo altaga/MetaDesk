@@ -28,6 +28,7 @@ import type {
   Session,
   TerminalTicket,
   Tier,
+  ToolEvent,
   TurnEvent,
 } from "./types";
 
@@ -168,6 +169,12 @@ export function createDeskClient(opts: DeskClientOptions) {
       ),
     deleteSession: (id: number) =>
       request<{ ok: boolean; deleted: number }>(`/v1/chat/sessions/${id}`, { method: "DELETE" }),
+    /** Approve (write) or deny a file change the agent proposed. */
+    decideApproval: (approvalId: string, approve: boolean) =>
+      request<{ ok: boolean; result: ToolEvent }>(`/v1/chat/approvals/${encodeURIComponent(approvalId)}`, {
+        method: "POST",
+        body: JSON.stringify({ approve }),
+      }),
     listFiles: (path = ".") =>
       request<FileListing>(`/v1/edge/files?path=${encodeURIComponent(path)}`),
     readFile: (path: string) =>

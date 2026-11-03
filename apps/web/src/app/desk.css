@@ -1764,3 +1764,52 @@
 .md-nova__panel[data-tour] .md-nova__log {
   max-height: 150px;
 }
+
+/* ---------- Chat: a proposed file change awaiting approval ---------- */
+.md-patch {
+  max-height: none;
+  white-space: normal;
+}
+
+.md-patch__path {
+  color: var(--md-text);
+  margin-bottom: var(--md-sp-2);
+}
+
+.md-patch__diff {
+  margin: 0;
+  padding: var(--md-sp-2);
+  border-radius: var(--md-r-sm);
+  background: rgba(0, 0, 0, 0.22);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.md-patch__del {
+  display: block;
+  color: var(--md-bad-text);
+  background: var(--md-bad-soft);
+}
+
+.md-patch__add {
+  display: block;
+  color: var(--md-good);
+  background: var(--md-good-soft);
+}
+
+.md-patch__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--md-sp-2);
+  margin-top: var(--md-sp-3);
+  font-family: var(--md-font);
+}
+
+.md-patch__note {
+  margin-right: auto;
+  color: var(--md-text-3);
+}

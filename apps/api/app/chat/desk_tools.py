@@ -20,7 +20,8 @@ from . import approvals, guardrails
 LIST_CAP_BYTES = 256 * 1024
 READ_CAP_BYTES = 256 * 1024
 RUN_CAP_BYTES = 64 * 1024
-RUN_TIMEOUT_SECONDS = 30
+# Arm routines (slow dumbbell pickup, presets) need well over 30s on hardware.
+RUN_TIMEOUT_SECONDS = 120
 SEARCH_RESULT_CAP = 5
 
 _FENCE = re.compile(r"```(run|read|list|patch|search|job)[ \t]*\r?\n(.*?)```", re.DOTALL)

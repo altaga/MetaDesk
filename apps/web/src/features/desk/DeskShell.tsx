@@ -123,8 +123,8 @@ export function DeskShell({ startPairing = false }: { startPairing?: boolean }) 
                 <MachineView
                   deviceId={desk.activeDeviceId}
                   boardEmu={
-                    // Orin is a real AWS VM that sometimes hello's as emu; never
-                    // shut its terminal/files affordances for that mis-flag.
+                    // Shared demo board sometimes hello's as emu; never shut its
+                    // terminal/files affordances for that mis-flag.
                     desk.activeDevice && isJudgeBoard(desk.activeDevice)
                       ? false
                       : (desk.activeDevice?.board_emu ?? false)

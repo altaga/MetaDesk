@@ -15,7 +15,10 @@ import httpx
 from ..cloudlink import cloud_config
 from ..config import settings
 
-_TIMEOUT = httpx.Timeout(connect=5.0, read=180.0, write=30.0, pool=5.0)
+# Connect is generous on purpose: boards often reach the Worker through USB
+# tether / hotel Wi-Fi / VPN, where TLS setup alone can take 10–20s. A short
+# connect budget surfaces as CLOUD_UNREACHABLE even when Muse is healthy.
+_TIMEOUT = httpx.Timeout(connect=30.0, read=180.0, write=30.0, pool=5.0)
 
 
 class CloudCreditSpent(RuntimeError):

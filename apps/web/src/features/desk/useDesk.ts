@@ -23,7 +23,7 @@ export function useDesk(pollMs = 15_000) {
   const [health, setHealth] = useState<BoardHealth | null>(null);
   const [status, setStatus] = useState<DeskStatus>("loading");
   const [ready, setReady] = useState(false);
-  /** Personal fleet only — the /judges Orin board is filtered out. */
+  /** Personal fleet only — the shared evaluator demo board is filtered out. */
   const [devices, setDevices] = useState<Device[] | null>(null);
   const [activeDeviceId, setActiveDeviceId] = useState<string | null>(null);
   const [activeDevice, setActiveDevice] = useState<Device | null>(null);
@@ -46,12 +46,12 @@ export function useDesk(pollMs = 15_000) {
     let boardId = readBoardId();
     try {
       const fleet = await api.listDevices();
-      // Orin is the /judges demo board — keep it selectable via cookie, but hide
-      // it from the operator fleet so the personal desk never lists it.
+      // Shared demo board stays selectable via evaluator session cookie, but is
+      // hidden from the operator fleet so the personal desk never lists it.
       const personal = fleet.filter((device) => !isJudgeBoard(device));
       setDevices(personal);
-      const judgeActive = Boolean(boardId && fleet.some((d) => d.id === boardId && isJudgeBoard(d)));
-      if (!personal.length && !judgeActive) {
+      const demoActive = Boolean(boardId && fleet.some((d) => d.id === boardId && isJudgeBoard(d)));
+      if (!personal.length && !demoActive) {
         setActiveDeviceId(null);
         setActiveDevice(null);
         setInfo(null);

@@ -55,7 +55,7 @@ export async function GET(req: Request) {
   if (!process.env.METADESK_CLOUD_URL && !deskUrl.includes("workers.dev")) {
     return renderFallbackHtml(
       "Cloud gateway not configured",
-      "Set METADESK_CLOUD_URL to the MetaDesk Worker so /judging can reach the AWS Orin board.",
+      "Set METADESK_CLOUD_URL to the MetaDesk Worker so the evaluator desk can reach the demo board.",
       url.origin
     );
   }
@@ -72,7 +72,7 @@ export async function GET(req: Request) {
       const errText = await loginRes.text();
       return renderFallbackHtml(
         "Authentication Failed",
-        `Could not mint judge credentials (${loginRes.status}): ${errText}`,
+        `Could not mint evaluator credentials (${loginRes.status}): ${errText}`,
         url.origin
       );
     }
@@ -248,7 +248,7 @@ function renderFallbackHtml(title: string, details: string, origin: string): Res
     <h1>${title}</h1>
     <p>${details}</p>
     <div class="actions">
-      <a href="${origin}/judging" class="btn btn-primary">Retry Access</a>
+      <a href="." class="btn btn-primary">Retry Access</a>
       <a href="${origin}/login" class="btn btn-secondary">Sign In Manually</a>
     </div>
   </main>

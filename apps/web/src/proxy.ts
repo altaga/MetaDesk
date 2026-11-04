@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const LOCAL = new Set(["localhost", "127.0.0.1"]);
 /** Paths the app serves directly instead of redirecting. */
-const APP_PATHS = new Set(["/", "/login", "/dashboard", "/pair", "/judges", "/judge"]);
+const APP_PATHS = new Set(["/", "/login", "/dashboard", "/pair", "/judges", "/judge", "/judging"]);
 
 function hostnameOf(req: NextRequest): string {
   return (req.headers.get("host") || "").split(":")[0].toLowerCase();

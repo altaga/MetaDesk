@@ -4,11 +4,18 @@ import { deskApiUrl } from "@/lib/server-env";
 
 export const dynamic = "force-dynamic";
 
-/** Default fallback cloud device ID (Orin on AWS) */
+/** Known AWS Orin board id — used only when the fleet list is briefly unavailable. */
 const FALLBACK_ORIN_ID = "a6dd3900-0cf9-4bbb-b3d3-4b255f0b01bc";
+const ORIN_NAME = "orin";
 const DEFAULT_REFRESH_TTL_SEC = 30 * 24 * 60 * 60;
 const SESSION_COOKIE = "metadesk_token";
 const REFRESH_COOKIE = "metadesk_refresh";
+
+type DeviceRow = {
+  id: string;
+  name: string;
+  status: "online" | "offline" | string;
+};
 
 function cookieOptions(maxAgeSec: number) {
   return {
@@ -20,16 +27,38 @@ function cookieOptions(maxAgeSec: number) {
   };
 }
 
+function asDeviceList(payload: unknown): DeviceRow[] {
+  if (Array.isArray(payload)) return payload as DeviceRow[];
+  if (payload && typeof payload === "object" && Array.isArray((payload as { devices?: unknown }).devices)) {
+    return (payload as { devices: DeviceRow[] }).devices;
+  }
+  return [];
+}
+
+function pickOrin(devices: DeviceRow[]): DeviceRow | null {
+  const named = devices.filter((d) => (d.name || "").trim().toLowerCase() === ORIN_NAME);
+  if (!named.length) return null;
+  return named.find((d) => d.status === "online") ?? named[0];
+}
+
 /**
- * 1-click evaluator bypass for Cerebral Valley hackathon judges.
- * Automatically authenticates as operator, binds the active cloud-hosted Orin board,
- * writes secure session cookies, and redirects straight to /dashboard.
+ * 1-click evaluator bypass: mint a session against the Cloudflare Worker and
+ * bind the desk to the AWS Orin board (the VM running MetaDesk), then land on
+ * /dashboard. Never binds local board-emu containers.
  */
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const deskUrl = deskApiUrl();
   const username = process.env.BOOTSTRAP_USERNAME || "admin";
   const password = process.env.BOOTSTRAP_PASSWORD || "f0xkqTsH7VFOesh70ynsDoSv";
+
+  if (!process.env.METADESK_CLOUD_URL && !deskUrl.includes("workers.dev")) {
+    return renderFallbackHtml(
+      "Cloud gateway not configured",
+      "Set METADESK_CLOUD_URL to the MetaDesk Worker so /judging can reach the AWS Orin board.",
+      url.origin
+    );
+  }
 
   try {
     const loginRes = await fetch(`${deskUrl}/v1/auth/login`, {
@@ -69,35 +98,39 @@ export async function GET(req: Request) {
     const sessionTtl = data.refresh_token ? refreshTtl : data.expires_in ?? 3600;
 
     let targetDeviceId = FALLBACK_ORIN_ID;
+    let orinStatus: string = "unknown";
+
     try {
       const devRes = await fetch(`${deskUrl}/v1/devices`, {
         headers: { Authorization: `Bearer ${accessToken}` },
         cache: "no-store",
       });
       if (devRes.ok) {
-        const devices = (await devRes.json()) as Array<{
-          id: string;
-          name: string;
-          status: string;
-        }>;
-        const orin = devices.find((d) => d.name.toLowerCase() === "orin" && d.status === "online");
-        if (orin) {
-          targetDeviceId = orin.id;
-        } else {
-          const online = devices.find((d) => d.status === "online");
-          if (online) {
-            targetDeviceId = online.id;
-          } else if (devices.length > 0) {
-            targetDeviceId = devices[0].id;
-          }
+        const devices = asDeviceList(await devRes.json());
+        const orin = pickOrin(devices);
+        if (!orin) {
+          return renderFallbackHtml(
+            "Orin board not found",
+            "No fleet device named “orin” is paired to this account. Pair the AWS VM first, then retry.",
+            url.origin
+          );
+        }
+        targetDeviceId = orin.id;
+        orinStatus = orin.status;
+        if (orin.status !== "online") {
+          return renderFallbackHtml(
+            "Orin is offline",
+            `The AWS Orin board (${orin.id}) is paired but not connected to the relay right now. Wait for the agent to dial out, then retry.`,
+            url.origin
+          );
         }
       }
     } catch {
-      // Fallback ID remains active
+      // Keep FALLBACK_ORIN_ID so a transient fleet list failure still opens the desk.
+      orinStatus = "fallback";
     }
 
     const res = NextResponse.redirect(new URL("/dashboard", req.url), 307);
-
     res.cookies.set(SESSION_COOKIE, accessToken, cookieOptions(sessionTtl));
     if (data.refresh_token) {
       res.cookies.set(REFRESH_COOKIE, data.refresh_token, cookieOptions(refreshTtl));
@@ -107,7 +140,8 @@ export async function GET(req: Request) {
       maxAge: 60 * 60 * 24 * 365,
       sameSite: "lax",
     });
-
+    res.headers.set("X-MetaDesk-Judge-Board", targetDeviceId);
+    res.headers.set("X-MetaDesk-Judge-Status", orinStatus);
     return res;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -185,10 +219,7 @@ function renderFallbackHtml(title: string, details: string, origin: string): Res
       margin-bottom: 1.5rem;
       word-break: break-word;
     }
-    .actions {
-      display: flex;
-      gap: 0.75rem;
-    }
+    .actions { display: flex; gap: 0.75rem; }
     .btn {
       display: inline-flex;
       align-items: center;
@@ -200,37 +231,24 @@ function renderFallbackHtml(title: string, details: string, origin: string): Res
       text-decoration: none;
       transition: background 0.15s ease;
     }
-    .btn-primary {
-      background: var(--text);
-      color: var(--bg);
-    }
-    .btn-primary:hover {
-      background: #ffffff;
-    }
+    .btn-primary { background: var(--text); color: var(--bg); }
+    .btn-primary:hover { background: #ffffff; }
     .btn-secondary {
       background: transparent;
       color: var(--text);
       border: 1px solid var(--border);
     }
-    .btn-secondary:hover {
-      border-color: var(--muted);
-    }
-    :focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
-    }
+    .btn-secondary:hover { border-color: var(--muted); }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   </style>
 </head>
 <body>
   <main class="card" role="alert">
-    <div class="badge">
-      <span>●</span>
-      <span>Evaluator Bypass Notice</span>
-    </div>
+    <div class="badge"><span>●</span><span>Evaluator Bypass Notice</span></div>
     <h1>${title}</h1>
     <p>${details}</p>
     <div class="actions">
-      <a href="${origin}/judges" class="btn btn-primary">Retry Access</a>
+      <a href="${origin}/judging" class="btn btn-primary">Retry Access</a>
       <a href="${origin}/login" class="btn btn-secondary">Sign In Manually</a>
     </div>
   </main>

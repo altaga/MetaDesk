@@ -121,9 +121,11 @@ export async function markBoardHello(
     .bind(deviceId)
     .first<{ name: string; hostname: string | null }>();
   const name = boardName(row?.name);
+  // The AWS Orin demo board must never stick as board-emu (that hides Terminal).
+  const emu = name.trim().toLowerCase() === "orin" ? false : info.boardEmu;
   await env.DB.prepare(
     "UPDATE devices SET hostname = COALESCE(?1, hostname), board_emu = ?2, name = ?3 WHERE id = ?4"
   )
-    .bind(info.hostname, info.boardEmu ? 1 : 0, name, deviceId)
+    .bind(info.hostname, emu ? 1 : 0, name, deviceId)
     .run();
 }

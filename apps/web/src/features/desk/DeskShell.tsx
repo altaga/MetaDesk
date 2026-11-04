@@ -12,6 +12,7 @@ import { PairWizard } from "@/features/pairing/PairWizard";
 import { Nova } from "@/features/nova/Nova";
 import { onGuide, type DeskView } from "@/features/nova/guideBus";
 import { PwaInstallButton } from "@/features/pwa/PwaInstallButton";
+import { isJudgeBoard } from "@/lib/judge-board";
 import { BrandMark } from "@/ui/BrandMark";
 import { Icon, type IconName } from "@/ui/Icon";
 
@@ -121,7 +122,13 @@ export function DeskShell({ startPairing = false }: { startPairing?: boolean }) 
               {active === "machine" ? (
                 <MachineView
                   deviceId={desk.activeDeviceId}
-                  boardEmu={desk.activeDevice?.board_emu ?? false}
+                  boardEmu={
+                    // Orin is a real AWS VM that sometimes hello's as emu; never
+                    // shut its terminal/files affordances for that mis-flag.
+                    desk.activeDevice && isJudgeBoard(desk.activeDevice)
+                      ? false
+                      : (desk.activeDevice?.board_emu ?? false)
+                  }
                 />
               ) : null}
               {active === "board" ? <BoardView info={desk.info} health={desk.health} /> : null}

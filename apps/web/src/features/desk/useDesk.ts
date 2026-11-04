@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { readBoardId, writeBoardId } from "@/lib/board-cookie";
+import { isJudgeBoard } from "@/lib/judge-board";
 import { DeskError } from "@/shared/client";
 import type { BoardHealth, BoardInfo, Device, Operator } from "@/shared/types";
 
@@ -22,8 +23,10 @@ export function useDesk(pollMs = 15_000) {
   const [health, setHealth] = useState<BoardHealth | null>(null);
   const [status, setStatus] = useState<DeskStatus>("loading");
   const [ready, setReady] = useState(false);
+  /** Personal fleet only — the /judges Orin board is filtered out. */
   const [devices, setDevices] = useState<Device[] | null>(null);
   const [activeDeviceId, setActiveDeviceId] = useState<string | null>(null);
+  const [activeDevice, setActiveDevice] = useState<Device | null>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -43,22 +46,31 @@ export function useDesk(pollMs = 15_000) {
     let boardId = readBoardId();
     try {
       const fleet = await api.listDevices();
-      setDevices(fleet);
-      if (!fleet.length) {
+      // Orin is the /judges demo board — keep it selectable via cookie, but hide
+      // it from the operator fleet so the personal desk never lists it.
+      const personal = fleet.filter((device) => !isJudgeBoard(device));
+      setDevices(personal);
+      const judgeActive = Boolean(boardId && fleet.some((d) => d.id === boardId && isJudgeBoard(d)));
+      if (!personal.length && !judgeActive) {
+        setActiveDeviceId(null);
+        setActiveDevice(null);
         setInfo(null);
         setHealth(null);
         setStatus("offline");
         setReady(true);
         return;
       }
-      if (!boardId || !fleet.some((device) => device.id === boardId)) {
-        boardId = fleet[0].id;
-        writeBoardId(boardId);
+      const known = fleet.some((device) => device.id === boardId);
+      if (!boardId || !known) {
+        boardId = personal[0]?.id ?? null;
+        if (boardId) writeBoardId(boardId);
       }
       setActiveDeviceId(boardId);
+      setActiveDevice(fleet.find((device) => device.id === boardId) ?? null);
     } catch {
       // No fleet endpoint: the desk drives a board directly, no routing.
       setDevices(null);
+      setActiveDevice(null);
     }
 
     try {
@@ -107,8 +119,6 @@ export function useDesk(pollMs = 15_000) {
     },
     [refresh],
   );
-
-  const activeDevice = devices?.find((device) => device.id === activeDeviceId) ?? null;
 
   return {
     operator,

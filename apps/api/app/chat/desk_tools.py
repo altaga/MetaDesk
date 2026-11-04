@@ -87,6 +87,14 @@ def _run_read(argument: str) -> dict[str, Any]:
 
 
 def _run_shell(command: str) -> dict[str, Any]:
+    hw_violation = guardrails.hardware_safety_violation(command)
+    if hw_violation:
+        return {
+            "name": "run",
+            "status": "blocked",
+            "reason": hw_violation,
+            "command": command,
+        }
     if guardrails.is_destructive(command):
         return {
             "name": "run",

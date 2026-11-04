@@ -420,3 +420,25 @@ def test_tool_results_go_back_to_the_model(monkeypatch):
     assert tools[1]["status"] == "pending"
     assert len(calls) == 2  # the patch ends the turn; no third call
     assert "saveItemz(x);" in calls[1][-1]["content"]  # the read result was fed back
+
+
+def test_hardware_safety_guardrails():
+    from app.chat import desk_tools, guardrails
+
+    # Safe commands
+    assert guardrails.hardware_safety_violation("robot-arm --joints 90 90 95 90") is None
+    assert guardrails.hardware_safety_violation("robot-arm --status") is None
+    assert guardrails.hardware_safety_violation("robot-arm --grip open") is None
+
+    # Unsafe elbow < 90 deg blocked
+    v1 = guardrails.hardware_safety_violation("robot-arm --joints 90 90 89.9 90")
+    assert v1 is not None and "Elbow angle 89.9° out of safe range" in v1
+
+    # Unsafe elbow from raw command
+    v2 = guardrails.hardware_safety_violation('robot-arm --cmd "JOINTS 90 90 50 90"')
+    assert v2 is not None and "Elbow angle 50.0° out of safe range" in v2
+
+    # Executing blocked command via desk_tools returns blocked event
+    res = desk_tools.execute("run", "robot-arm --joints 90 90 45 90")
+    assert res["status"] == "blocked"
+    assert "hardware_safety_violation" in res["reason"]

@@ -62,6 +62,8 @@ secrets.env
 .wrangler/
 **/.wrangler/
 .dev.vars
+**/.dev.vars
+**/.dev.vars.*
 
 # Local-only operator tooling. Never committed.
 Skills/
@@ -73,9 +75,12 @@ scripts/
 _tmp*
 _tmp_*/
 
-# Editor / OS
+# Editor / OS / AI Assistants
 .idea/
 .vscode/
+.claude/
+.cursor/
+.gemini/
 .DS_Store
 Thumbs.db
 *.swp
@@ -83,4 +88,5 @@ Thumbs.db
 # Misc
 *.tgz
 .vercel/
+**/.vercel/
 .tern-port

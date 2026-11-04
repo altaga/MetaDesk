@@ -2,7 +2,7 @@
   "name": "metadesk",
   "private": true,
   "version": "0.1.0",
-  "description": "MetaDesk — an operator desk whose brain lives on your Jetson, powered by Meta Muse models",
+  "description": "MetaDesk — Embodied AI operator desk and robot fleet control plane on NVIDIA Jetson, powered by Meta Muse models",
   "engines": {
     "node": ">=20"
   },

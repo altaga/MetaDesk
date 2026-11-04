@@ -124,9 +124,9 @@ capable Meta tier, and shrink the prompt before paid tokens leave the board.
 | Tier | Where | Default model | Job |
 |---|---|---|---|
 | `local` | Ollama on Jetson GPU | `qwen3.5:4b` (`OLLAMA_MODEL`) | greetings, translate/format, short rewrites, **routing**, **history compression** |
-| `fast` | Meta Model API | `muse-spark-1.3` | everyday Q&A, code help, summaries |
-| `heavy` | Meta Model API | `muse-wonder-1.0` | hard reasoning / debug |
-| `ultra` | Meta Model API | `muse-wonder-full-1.0` | manual only (composer) |
+| `fast` | Meta Model API | `muse-spark-1.3-contributor` | everyday Q&A, code help, summaries |
+| `heavy` | Meta Model API | `muse-spark-1.3` | hard reasoning / debug |
+| `ultra` | Meta Model API | `muse-wonder-1.0` | manual only (composer) |
 
 One turn (`chat/service.py` → `router/hybrid.py`):
 

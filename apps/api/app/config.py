@@ -58,9 +58,9 @@ class Settings(BaseSettings):
 
     meta_api_key: str = Field(default="", validation_alias=_choice("META_API_KEY"))
     meta_base_url: str = Field(default="https://api.meta.ai/v1", validation_alias=_choice("META_BASE_URL"))
-    meta_model_fast: str = Field(default="muse-spark-1.3", validation_alias=_choice("META_MODEL_FAST"))
-    meta_model_heavy: str = Field(default="muse-wonder-1.0", validation_alias=_choice("META_MODEL_HEAVY"))
-    meta_model_ultra: str = Field(default="muse-wonder-full-1.0", validation_alias=_choice("META_MODEL_ULTRA"))
+    meta_model_fast: str = Field(default="muse-spark-1.3-contributor", validation_alias=_choice("META_MODEL_FAST"))
+    meta_model_heavy: str = Field(default="muse-spark-1.3", validation_alias=_choice("META_MODEL_HEAVY"))
+    meta_model_ultra: str = Field(default="muse-wonder-1.0", validation_alias=_choice("META_MODEL_ULTRA"))
     #: Muse reasons before it answers, and reasoning shares the output budget.
     #: Empty leaves the model's own default.
     meta_reasoning_effort: str = Field(default="low", validation_alias=_choice("META_REASONING_EFFORT"))

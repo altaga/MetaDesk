@@ -25,7 +25,7 @@
 
 Most chat apps rent a model in a data center and leave your hardware idle. MetaDesk flips that:
 
-1. **Muse is the brain.** Hard turns go to Meta&apos;s Muse models (`muse-spark-1.3`, `muse-wonder-1.0`, `muse-wonder-full-1.0`) through the Meta Model API — keys stay in the Cloudflare Worker, never on the board or in the browser.
+1. **Muse is the brain.** Hard turns go to Meta&apos;s Muse models (`muse-spark-1.3-contributor`, `muse-spark-1.3`, `muse-wonder-1.0`) through the Meta Model API — keys stay in the Cloudflare Worker, never on the board or in the browser.
 2. **The Jetson is the body.** Chat drives a real PTY, the desk workspace, a headless browser, and durable jobs **on the board**.
 3. **Local processing is the filter.** A small Ollama model on the Jetson handles routing, short answers, and prompt compression for free. Muse is called when a turn needs it.
 4. **No inbound ports.** The board dials out to a Cloudflare Durable Object relay, so it works behind home or lab NAT.
@@ -57,9 +57,9 @@ Every turn picks a rung before it costs anything. Leave the composer on **Auto**
 | Tier | Engine | Model | Job |
 |---|---|---|---|
 | **Local** | Ollama on the Jetson | `qwen3.5:4b` (`OLLAMA_MODEL`) | Routing, short answers, compression — free & offline |
-| **Fast** | Meta Model API | `muse-spark-1.3` | Everyday coding and longer reasoning |
-| **Heavy** | Meta Model API | `muse-wonder-1.0` | Hard debug / deep context |
-| **Ultra** | Meta Model API | `muse-wonder-full-1.0` | Manual / subscription only |
+| **Fast** | Meta Model API | `muse-spark-1.3-contributor` | Everyday coding and longer reasoning |
+| **Heavy** | Meta Model API | `muse-spark-1.3` | Hard debug / deep context |
+| **Ultra** | Meta Model API | `muse-wonder-1.0` | Manual / hardest turns |
 
 ```mermaid
 flowchart LR
@@ -72,7 +72,7 @@ flowchart LR
   subgraph Cloud["Cloud — Muse only when needed"]
     direction TB
     Compress --> Gateway["Worker gateway<br/>key custody + ledger"]
-    Gateway --> Spark["muse-spark-1.3"]
+    Gateway --> Spark["muse-spark-1.3-contributor"]
     Gateway --> Wonder["muse-wonder-1.0"]
   end
   Local --> Out["Stream + route telemetry"]

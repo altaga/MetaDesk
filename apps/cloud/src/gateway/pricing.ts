@@ -6,9 +6,9 @@ type Price = { input_per_m: number; output_per_m: number };
 const DEFAULT: Price = { input_per_m: 4.0, output_per_m: 20.0 };
 
 const PRICES: Record<string, Price> = {
-  "muse-spark-1.3": { input_per_m: 4.0, output_per_m: 20.0 },
+  "muse-spark-1.3-contributor": { input_per_m: 0.1, output_per_m: 0.2 },
+  "muse-spark-1.3": { input_per_m: 1.25, output_per_m: 4.25 },
   "muse-wonder-1.0": { input_per_m: 4.0, output_per_m: 20.0 },
-  "muse-wonder-full-1.0": { input_per_m: 4.0, output_per_m: 20.0 },
 };
 
 export function priceOf(model: string): Price {

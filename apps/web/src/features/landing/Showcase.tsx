@@ -14,7 +14,7 @@ const ITEMS: Array<{ id: string; title: string; body: string; lines: Line[] }> =
       { kind: "user", text: "summarise the last deploy log" },
       { kind: "note", text: "tier  local · on-board model · 0.7s · $0.00" },
       { kind: "user", text: "refactor the relay reconnect logic across the agent" },
-      { kind: "note", text: "tier  heavy · muse-wonder-1.0 · budget 62% left" },
+      { kind: "note", text: "tier  heavy · muse-spark-1.3 · budget 62% left" },
     ],
   },
   {

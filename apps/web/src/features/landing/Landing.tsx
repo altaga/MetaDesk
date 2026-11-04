@@ -13,29 +13,29 @@ const TIERS = [
   },
   {
     name: "Fast",
-    model: "muse-spark-1.3",
+    model: "muse-spark-1.3-contributor",
     body: "The everyday cloud tier. A good default for coding and longer reasoning.",
     meta: "Cloud · metered",
   },
   {
     name: "Heavy",
-    model: "muse-wonder-1.0",
+    model: "muse-spark-1.3",
     body: "The deep tier: a wide context and the hardest turns when they come up.",
     meta: "Cloud · metered",
   },
   {
     name: "Ultra",
-    model: "muse-wonder-full-1.0",
-    body: "Reserved for a Muse subscription. Same desk, the largest Muse brain.",
-    meta: "Subscription",
+    model: "muse-wonder-1.0",
+    body: "The top cloud tier for the hardest debug and agent work.",
+    meta: "Cloud · metered",
   },
 ];
 
 const STRIP = [
   { model: "local model", where: "on the board · Ollama" },
+  { model: "muse-spark-1.3-contributor", where: "Meta Model API" },
   { model: "muse-spark-1.3", where: "Meta Model API" },
   { model: "muse-wonder-1.0", where: "Meta Model API" },
-  { model: "muse-wonder-full-1.0", where: "Muse subscription" },
 ];
 
 const WHY = [

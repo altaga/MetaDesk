@@ -8,7 +8,7 @@ Humans should read [README.md](./README.md); this file is the machine-facing con
 A monorepo for an operator desk that runs **on an NVIDIA Jetson** (or a Docker
 `board-emu`). Chat drives shell / files / browser / jobs on the board. A hybrid router
 keeps light work local (an Ollama model on the board) and sends hard work to Meta's
-**Muse** models through the Meta Model API. Cloudflare is the account plane (auth,
+**Muse** models (Spark / Wonder) through the Meta Model API. Cloudflare is the account plane (auth,
 pairing, gateway keys, relay).
 
 [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) and [docs/API.md](./docs/API.md) hold the
@@ -103,10 +103,10 @@ npx wrangler d1 migrations apply metadesk --remote
   `~/.config/metadesk`, the SQLite file `metadesk.db`.
   Boards are named by the operator; **Nova** is the on-screen guide only.
 - **Model names.** Talk about Meta's models by their real identifiers:
-  `muse-spark-1.3` (fast), `muse-wonder-1.0` (heavy), `muse-wonder-full-1.0` (ultra,
-  subscription). The `local` tier is whatever Ollama serves on the board
-  (`OLLAMA_MODEL`, default `qwen3.5:4b`); call it local processing in copy, not Muse
-  Glimmer, which needs far more memory than an 8 GB Jetson has. Do not invent tiers.
+  `muse-spark-1.3-contributor` (fast), `muse-spark-1.3` (heavy), `muse-wonder-1.0`
+  (ultra). The `local` tier is whatever Ollama serves on the board (`OLLAMA_MODEL`,
+  default `qwen3.5:4b`); call it local processing in copy, not Muse Glimmer, which
+  needs far more memory than an 8 GB Jetson has. Do not invent tiers.
 - **Docs are split by audience:** `README.md` = humans, `AGENTS.md` = agents.
 - **Mermaid diagrams** prefer horizontal or multi-row (`flowchart LR`) for GitHub
   readability. In docs, images use `<img width="…">` HTML tags, never bare Markdown

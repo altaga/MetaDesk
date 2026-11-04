@@ -73,15 +73,23 @@ export function useDesk(pollMs = 15_000) {
       setActiveDevice(null);
     }
 
+    // Open the desk as soon as identity + fleet resolve. Board telemetry can
+    // stall on a slow relay; never leave the operator on "Connecting…".
+    setReady(true);
+
     try {
-      const [boardInfo, boardHealth] = await Promise.all([api.boardInfo(), api.boardHealth()]);
+      const [boardInfo, boardHealth] = await Promise.race([
+        Promise.all([api.boardInfo(), api.boardHealth()]),
+        new Promise<never>((_, reject) => {
+          window.setTimeout(() => reject(new Error("board_telemetry_timeout")), 12_000);
+        }),
+      ]);
       setInfo(boardInfo);
       setHealth(boardHealth);
       setStatus("online");
     } catch {
       setStatus("offline");
     }
-    setReady(true);
   }, []);
 
   useEffect(() => {

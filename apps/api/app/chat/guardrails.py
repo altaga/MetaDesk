@@ -13,7 +13,7 @@ DESTRUCTIVE_PATTERNS = (
     r"\breboot\b",
     r":\(\)\s*\{",
     r"chmod\s+-R\s+777\s+/",
-    r">\s*/dev/",
+    r">\s*/dev/(?!null\b)",
 )
 
 _COMPILED = tuple(re.compile(pattern, re.IGNORECASE) for pattern in DESTRUCTIVE_PATTERNS)
